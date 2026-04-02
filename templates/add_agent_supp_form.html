@@ -1,0 +1,18 @@
+
+{% extends 'agentheader.html' %}
+
+{% block content %}
+<div>
+
+    <form method="post" >
+      {% csrf_token %}
+      <table border="1" width="200">
+        {{ form.as_table}}
+      </table>
+      <input type="submit" value="Insert">
+    </form>
+
+</div>
+
+
+{% endblock %}

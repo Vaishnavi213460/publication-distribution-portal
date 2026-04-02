@@ -1,0 +1,112 @@
+{% extends 'adminheader.html' %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-xl-4 col-lg-5 mb-4">
+            <div class="card shadow-sm border-0 h-100" style="border-radius: 15px;">
+                <div class="card-body p-4">
+                    <h4 class="fw-bold text-indigo mb-3" style="color: #6610f2;">
+                        <i class="fa fa-link me-2"></i>Frequency Mapping
+                    </h4>
+                    <p class="text-muted small mb-4">Link specific products to their delivery schedules (e.g., Daily, Weekly).</p>
+
+                    <form method="POST" class="mapping-form">
+                        {% csrf_token %}
+
+                        <div class="row">
+                            {% for field in form %}
+                            <div class="col-12 mb-3">
+                                <label class="form-label fw-bold small text-muted">{{ field.label }}</label>
+                                <div class="custom-select-wrapper">
+                                    {{ field }}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-indigo btn-lg w-100 shadow-0 py-3 text-white fw-bold" style="background-color: #6610f2; border-radius: 10px;">
+                                <i class="fa fa-save me-2"></i>Save Mapping
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-8 col-lg-7 mb-4">
+            <div class="card shadow-sm border-0 h-100" style="border-radius: 15px;">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="fw-bold text-dark m-0">Mapped Schedules</h4>
+                        <span class="badge rounded-pill bg-light text-dark border px-3 py-2">
+                            {{ data|length }} Active Maps
+                        </span>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="border-0 text-muted py-3 px-4">ID</th>
+                                    <th class="border-0 text-muted py-3">Product Name</th>
+                                    <th class="border-0 text-muted py-3">Assigned Frequency</th>
+                                    <th class="border-0 text-muted py-3 text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for i in data %}
+                                <tr>
+                                    <td class="py-3 px-4 text-muted">#{{ i.id }}</td>
+                                    <td class="py-3">
+                                        <div class="d-flex align-items-center">
+                                            <div class="rounded-circle bg-indigo-light me-2 d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; background: #ebe3ff;">
+                                                <i class="fa fa-newspaper-o text-indigo" style="color: #6610f2; font-size: 0.8rem;"></i>
+                                            </div>
+                                            <span class="fw-bold text-dark">{{ i.product }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-3">
+                                        <span class="badge rounded-pill bg-outline-indigo px-3 border" style="color: #6610f2; border-color: #6610f2;">
+                                            {{ i.frequency }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-5 text-muted">No mappings created yet.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Custom Styling for Select dropdowns and Inputs */
+    .custom-select-wrapper select,
+    .custom-select-wrapper input {
+        display: block;
+        width: 100%;
+        padding: 0.75rem 1rem;
+        font-size: 0.95rem;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        background-color: #fff;
+        transition: all 0.2s ease-in-out;
+    }
+    .custom-select-wrapper select:focus {
+        border-color: #6610f2;
+        box-shadow: 0 0 0 0.2rem rgba(102, 16, 242, 0.1);
+    }
+    /* Hover effects for rows */
+    .table-hover tbody tr:hover {
+        background-color: #fbf9ff;
+    }
+</style>
+{% endblock %}

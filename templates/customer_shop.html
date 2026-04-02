@@ -1,0 +1,95 @@
+{% extends 'header_footer.html' %}
+{% load static %}
+
+{% block content %}
+
+<!-- Product Shop Section -->
+<section class="product-shop spad">
+    <div class="container">
+        <div class="row">
+
+            <div class="col-lg-9 order-1 order-lg-2">
+
+                <div class="product-show-option">
+                    <div class="row">
+
+                        <div class="col-lg-7 col-md-7">
+
+                            <form method="POST">
+                                {% csrf_token %}
+                                <div class="select-option d-flex">
+
+                                    <select class="sorting form-control" name="location_id">
+                                        <option value="">Select a location</option>
+
+                                        {% for location in list %}
+                                            <option value="{{ location.id }}">
+                                                {{ location.location }}
+                                            </option>
+                                        {% endfor %}
+
+                                    </select>
+
+                                    <button type="submit" class="btn btn-primary ml-2">
+                                        Search
+                                    </button>
+
+                                </div>
+                            </form>
+
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Product List -->
+                <div class="product-list">
+                    <div class="row">
+
+                        {% for a in agent %}
+                        <div class="col-lg-4 col-sm-6">
+                            <div class="product-item">
+
+                                <div class="pi-pic">
+
+                                    <a href="{% url 'customer_agent_products' a.id %}">
+                                        {% if a.photo %}
+                                            <img src="{{ a.photo.url }}" alt="">
+                                        {% else %}
+                                            <img src="{% static 'img/products/product-1.jpg' %}" alt="">
+                                        {% endif %}
+                                    </a>
+
+                                </div>
+
+                                <div class="pi-text">
+
+                                    <div class="catagory-name">Agent</div>
+
+                                    <h5>{{ a.name }}</h5>
+
+                                    <p>{{ a.phone }}</p>
+
+                                </div>
+
+                            </div>
+                        </div>
+                        {% empty %}
+
+                        <div class="col-12">
+                            <p>No agents found for this location.</p>
+                        </div>
+
+                        {% endfor %}
+
+                    </div>
+                </div>
+                <!-- End Product List -->
+
+            </div>
+
+        </div>
+    </div>
+</section>
+
+{% endblock %}

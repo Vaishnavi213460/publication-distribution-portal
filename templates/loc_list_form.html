@@ -1,0 +1,93 @@
+{% extends 'adminheader.html' %}
+{% block content %}
+
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow-sm border-0 h-100" style="border-radius: 15px;">
+                <div class="card-body p-4">
+                    <h4 class="mb-4 fw-bold text-primary">Manage Locations</h4>
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold text-muted">Location Name</label>
+                            <div class="location-input">
+                                {{ form.location }}
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-lg w-100 shadow-0 py-3" style="border-radius: 10px;">
+                            Save Location
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8 mb-4">
+            <div class="card shadow-sm border-0 h-100" style="border-radius: 15px;">
+                <div class="card-body p-4">
+                    <h4 class="mb-4 fw-bold text-dark">Registered Locations</h4>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="border-0 text-muted py-3">ID</th>
+                                    <th class="border-0 text-muted py-3">Location Name</th>
+                                    <th class="border-0 text-muted py-3 text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for i in data %}
+                                <tr>
+                                    <td class="py-3 text-muted">#{{ i.id }}</td>
+                                    <td class="py-3"><span class="fw-bold text-dark">{{ i.location }}</span></td>
+                                    <td class="py-3 text-center">
+                                        <div class="d-flex justify-content-center gap-2">
+                                            <a href="{% url 'location_edit' i.id %}" class="btn btn-sm btn-outline-primary px-3">
+                                                <i class="fas fa-edit me-1"></i> Edit
+                                            </a>
+                                            <a href="{% url 'location_delete' i.id %}" class="btn btn-sm btn-outline-danger px-3">
+                                                <i class="fas fa-trash me-1"></i> Delete
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center py-5 text-muted">No locations registered yet.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Ensures Django's {{ form.location }} looks like a professional input */
+    .location-input input {
+        display: block;
+        width: 100%;
+        padding: 0.6rem 1rem;
+        font-size: 1rem;
+        font-weight: 400;
+        line-height: 1.5;
+        color: #212529;
+        background-color: #fff;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+    }
+    .location-input input:focus {
+        border-color: #1266f1;
+        outline: 0;
+        box-shadow: 0 0 0 0.25rem rgba(18, 102, 241, 0.25);
+    }
+    .card {
+        transition: transform 0.2s ease-in-out;
+    }
+</style>
+{% endblock %}

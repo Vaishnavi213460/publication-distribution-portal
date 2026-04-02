@@ -1,0 +1,38 @@
+{% extends 'agentheader.html' %}
+{% block content %}
+<div class="container py-4">
+    <div class="card shadow-sm border-0" style="border-radius: 15px;">
+        <div class="card-body p-4">
+            <h4 class="fw-bold mb-4 text-primary">
+                <i class="fa fa-newspaper-o me-2"></i>Product Catalog
+            </h4>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="border-0 py-3">Type</th>
+                            <th class="border-0 py-3">Product Name</th>
+                            <th class="border-0 py-3">Price</th>
+                            <th class="border-0 py-3">Issue Day</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for i in list %}
+                        <tr>
+                            <td>
+                                <span class="badge rounded-pill {% if i.type|lower == 'newspaper' %}bg-info{% else %}bg-warning{% endif %}">
+                                    {{ i.type }}
+                                </span>
+                            </td>
+                            <td class="fw-bold">{{ i.name }}</td>
+                            <td class="text-success fw-bold">₹{{ i.price }}</td>
+                            <td class="text-muted small">{{ i.issue_day }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

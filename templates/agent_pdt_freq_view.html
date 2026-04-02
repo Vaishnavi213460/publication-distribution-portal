@@ -1,0 +1,34 @@
+{% extends 'agentheader.html' %}
+{% block content %}
+<div class="container py-4">
+    <div class="card shadow-sm border-0" style="border-radius: 15px;">
+        <div class="card-body p-4">
+            <h4 class="fw-bold mb-4 text-dark">
+                <i class="fa fa-calendar me-2"></i>Publication Schedules
+            </h4>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="border-0 py-3">Product</th>
+                            <th class="border-0 py-3">Frequency</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for i in list %}
+                        <tr>
+                            <td class="fw-bold text-primary">{{ i.product }}</td>
+                            <td>
+                                <span class="badge border border-secondary text-secondary px-3">
+                                    {{ i.frequency }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

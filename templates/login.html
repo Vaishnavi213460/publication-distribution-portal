@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/7.2.0/mdb.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            background-color: #f0f2f5;
+            overflow: hidden; /* No scrolling for the login page */
+        }
+        .main-container {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .login-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            max-width: 1000px;
+            width: 100%;
+            display: flex;
+            overflow: hidden;
+        }
+        .side-banner {
+            background-color: #ffffff;
+            width: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+        }
+        .side-banner img {
+            max-width: 100%;
+            height: auto;
+            max-height: 400px;
+        }
+        .form-section {
+            width: 50%;
+            padding: 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .title {
+            color: #1266f1;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 30px;
+        }
+        .form-label {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #455a64;
+        }
+        .form-control-lg {
+            font-size: 1rem;
+            border-radius: 8px;
+        }
+        @media (max-width: 991px) {
+            .side-banner { display: none; }
+            .form-section { width: 100%; }
+            .login-card { max-width: 500px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="main-container">
+    <div class="login-card">
+
+        <div class="side-banner d-none d-lg-flex">
+            <img src="{% static 'img/login-img.jpg' %}" alt="Login image">
+        </div>
+
+        <div class="form-section">
+            <h3 class="title text-center w-100 mb-4">Login</h3>
+
+            <form method="post">
+                {% csrf_token %}
+
+                <div class="mb-4">
+                    <label class="form-label">Username</label>
+                    <input type="text" name="Username" class="form-control form-control-lg"
+                        placeholder="Enter your username" required />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Password</label>
+                    <input type="password" name="pwd" class="form-control form-control-lg"
+                        placeholder="Enter password" required />
+                </div>
+
+                <div class="d-flex justify-content-end mb-4">
+                    <a href="#!" class="text-primary small">Forgot password?</a>
+                </div>
+
+                <div class="text-center text-lg-start">
+                    <button type="submit" class="btn btn-primary btn-lg w-100 shadow-0 py-3 mb-4"
+                            style="border-radius: 8px;">Login</button>
+
+                    <p class="small fw-bold mb-2">Don't have an account?</p>
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'agent_registration' %}" class="btn btn-outline-dark btn-sm flex-grow-1">Agent</a>
+                        <a href="#!" class="btn btn-outline-dark btn-sm flex-grow-1">Customer</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</div>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/7.2.0/mdb.umd.min.js"></script>
+</body>
+</html>

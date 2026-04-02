@@ -1,0 +1,75 @@
+{% extends 'header_footer.html' %}
+{% load static %}
+
+{% block content %}
+
+<section class="product-detail spad py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-6">
+                <img src="{% static 'img/products/product-1.jpg' %}" class="img-fluid" alt="{{ product.name }}">
+            </div>
+            <div class="col-lg-6">
+                <div class="detail-section">
+                    <h2 class="mb-3">{{ product.name }}</h2>
+                    <div class="price fw-bold text-success fs-1 mb-3">₹{{ product.price }}</div>
+                    <p><strong>Type:</strong> {{ product.type }}</p>
+                    <p><strong>Management Type:</strong> {{ product.management_type }}</p>
+                    <p><strong>Price From:</strong> {{ product.price_from }}</p>
+<p><strong>Issue Day:</strong> {{ product.issue_day|date:"M d, Y" }}</p>
+                    <p><strong>Frequency:</strong> {{ product.frequency.all|join:", " }}</p>
+                    <div class="details mb-4">
+                        <h5>Details:</h5>
+                        <p>{{ product.details|linebreaks }}</p>
+                    </div>
+                    <div class="qty-section d-flex align-items-center mb-4">
+                        <label class="me-3 fw-bold">Quantity:</label>
+                        <button class="btn btn-outline-secondary me-2" type="button" onclick="changeQty(-1)">-</button>
+                        <input type="number" id="qty" value="1" min="1" class="form-control w-auto d-inline mx-2" style="width: 80px;">
+                        <button class="btn btn-outline-secondary" type="button" onclick="changeQty(1)">+</button>
+                    </div>
+                    <button class="btn btn-success btn-lg px-4" onclick="addToCart()">Add to Cart</button>
+                    <a href="{% url 'customer_agent_products' agent_id=agent_id %}" class="btn btn-secondary btn-lg ms-2">Back to Products</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+function changeQty(delta) {
+  let el = document.getElementById('qty');
+  let qty = parseInt(el.value) + delta;
+  if (qty < 1) qty = 1;
+  el.value = qty;
+}
+
+function addToCart() {
+  const productId = "{{ product.id }}";
+  const qty = parseInt(document.getElementById('qty').value);
+
+  fetch("{% url 'add_to_cart' %}", {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'X-CSRFToken': document.getElementById('csrf_token').value
+    },
+    body: `product_id=${productId}&qty=${qty}`
+  })
+  .then(response => response.json())
+  .then(data => {
+    console.log(data);
+    if (data.status === 'success') {
+      alert('Added to cart! (' + data.total_items + ' items)');
+    } else {
+      alert('Error adding to cart.');
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('Error adding to cart.');
+  });
+}
+</script>
+
+{% endblock %}

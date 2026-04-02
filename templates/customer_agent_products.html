@@ -1,0 +1,59 @@
+{% extends 'header_footer.html' %}
+{% load static %}
+
+{% block content %}
+
+<!-- Product Shop Section -->
+<section class="product-shop spad">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <h4 class="mb-4">Agent Products</h4>
+            </div>
+            <div class="col-lg-9 order-1 order-lg-2">
+
+                <!-- Product List -->
+                <div class="product-list">
+                    <div class="row">
+
+                        {% for p in products %}
+                        <div class="col-lg-4 col-sm-6">
+                            <div class="product-item">
+
+                                <div class="pi-pic">
+                                    <img src="{% static 'img/products/product-1.jpg' %}" alt="{{ p.name }}">
+                                </div>
+
+                                <div class="pi-text">
+
+                                    <div class="catagory-name">{{ p.type }}</div>
+
+                                    <h5>{{ p.name }}</h5>
+
+                                    <div class="product-price fw-bold text-success fs-5">₹{{ p.price }}</div>
+
+                                    <a href="{% url 'product_detail' p.id agent_id %}" class="btn btn-primary">More Details</a>
+
+                                </div>
+
+                            </div>
+                        </div>
+                        {% empty %}
+
+                        <div class="col-12">
+                            <p class="text-center py-5">No products found for this agent.</p>
+                        </div>
+
+                        {% endfor %}
+
+                    </div>
+                </div>
+                <!-- End Product List -->
+
+            </div>
+
+        </div>
+    </div>
+</section>
+
+{% endblock %}

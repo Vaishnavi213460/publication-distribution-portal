@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Registration</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/7.2.0/mdb.min.css" rel="stylesheet"/>
+
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            background-color: #f0f2f5;
+            overflow: hidden;
+        }
+        .main-container {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .registration-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            max-width: 1150px;
+            width: 100%;
+            height: 85vh; /* Fixed height to keep it neat */
+            display: flex;
+            overflow: hidden;
+        }
+        /* Left Side - Centralized Image */
+        .side-banner {
+            background-color: #ffffff;
+            width: 40%;
+            display: flex;
+            align-items: center; /* This centers the image vertically */
+            justify-content: center; /* This centers the image horizontally */
+            padding: 30px;
+            border-right: 1px solid #f0f2f5;
+        }
+        .side-banner img {
+            max-width: 100%;
+            height: auto;
+            max-height: 450px;
+        }
+        /* Right Side Form */
+        .form-section {
+            width: 60%;
+            padding: 40px;
+            overflow-y: auto;
+        }
+        .form-section::-webkit-scrollbar {
+            display: none;
+        }
+        .form-section {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .form-label {
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-bottom: 4px;
+            color: #455a64;
+        }
+        input, select, textarea {
+            display: block;
+            width: 100%;
+            padding: 0.375rem 0.75rem;
+            font-size: 0.9rem;
+            font-weight: 400;
+            line-height: 1.5;
+            color: #212529;
+            background-color: #fff;
+            background-clip: padding-box;
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+            transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+        }
+        .row-tight > [class*='col-'] {
+            padding-bottom: 12px;
+        }
+        h3.title {
+            color: #1266f1;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 25px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="main-container">
+    <div class="registration-card">
+
+        <div class="side-banner d-none d-lg-flex">
+            <img src="https://img.freepik.com/free-vector/book-inventory-concept-illustration_114360-8451.jpg"
+                  alt="Publication Distribution Portal" />
+        </div>
+
+        <div class="form-section">
+            <h3 class="title text-center text-lg-start">Customer Registration</h3>
+
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <div class="row row-tight">
+                    {% for field in form %}
+                        <div class="{% if 'address' in field.name|lower %}col-12{% else %}col-md-6{% endif %}">
+                            <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.errors %}
+                                <div class="text-danger" style="font-size: 0.7rem;">{{ field.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary btn-lg shadow-0 w-100 py-3">Register Customer</button>
+                    <p class="text-center mt-3 small">
+                        Already have an account? <a href="{% url 'login' %}">Sign In</a>
+                    </p>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</div>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/7.2.0/mdb.umd.min.js"></script>
+</body>
+</html>

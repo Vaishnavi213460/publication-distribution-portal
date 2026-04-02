@@ -1,0 +1,129 @@
+{% extends 'adminheader.html' %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-xl-5 col-lg-6 mb-4">
+            <div class="card shadow-sm border-0" style="border-radius: 15px;">
+                <div class="card-body p-4">
+                    <h4 class="fw-bold text-primary mb-2">
+                        <i class="fas fa-plus-circle me-2"></i>Product Master
+                    </h4>
+                    <p class="text-muted small mb-4">Add new newspapers or magazines and set their daily rates.</p>
+
+                    <form method="POST" class="admin-form">
+                        {% csrf_token %}
+
+                        <div class="row g-3">
+                            {% for field in form %}
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label fw-bold small text-muted">{{ field.label }}</label>
+                                <div class="custom-field">
+                                    {{ field }}
+                                </div>
+                                {% if field.errors %}
+                                <div class="text-danger small">{{ field.errors }}</div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg w-100 shadow-0 py-3" style="border-radius: 10px;">
+                                <i class="fas fa-save me-2"></i>Save Product
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-7 col-lg-6">
+            <div class="card shadow-sm border-0" style="border-radius: 15px;">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="fw-bold m-0 text-dark">Inventory List</h4>
+                        <span class="badge rounded-pill bg-primary px-3 py-2">{{ data|length }} Items</span>
+                    </div>
+
+                    <div class="table-responsive" style="max-height: 70vh; overflow-y: auto;">
+                        <table class="table table-hover align-middle">
+                            <thead class="sticky-top bg-white" style="z-index: 1;">
+                                <tr class="text-primary border-bottom border-primary">
+                                    <th class="fw-bold py-3">Type</th>
+                                    <th class="fw-bold py-3">Name</th>
+                                    <th class="fw-bold py-3">Price</th>
+                                    <th class="fw-bold py-3">Issue Day</th>
+                                    <th class="fw-bold py-3 text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for i in data %}
+                                <tr>
+                                    <td>
+                                        <span class="badge rounded-pill {% if i.type|lower == 'novel' %}bg-warning text-dark{% elif i.type|lower == 'comics' %}bg-info{% else %}bg-secondary{% endif %} px-3">
+                                            {{ i.type }}
+                                        </span>
+                                    </td>
+                                    <td class="fw-bold text-dark">{{ i.name }}</td>
+                                    <td class="text-dark fw-semibold">₹{{ i.price }}</td>
+                                    <td class="text-muted small">{{ i.issue_day }}</td>
+                                    <td class="text-center">
+                                        <div class="d-flex justify-content-center gap-2">
+                                            <a href="{% url 'product_edit' i.id %}" class="btn btn-sm btn-outline-primary border-1" title="Edit">
+                                                <i class="fas fa-pen"></i>
+                                            </a>
+                                            <a href="{% url 'product_delete' i.id %}" class="btn btn-sm btn-outline-danger border-1" title="Delete">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-5 text-muted">No products found.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Styling inputs to match Agent Registration */
+    .custom-field input,
+    .custom-field select,
+    .custom-field textarea {
+        display: block;
+        width: 100%;
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+        font-weight: 400;
+        line-height: 1.5;
+        color: #495057;
+        background-color: #fff;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+
+    .custom-field input:focus {
+        border-color: #1266f1;
+        outline: 0;
+        box-shadow: 0 0 0 0.2rem rgba(18, 102, 241, 0.1);
+    }
+
+    /* Scrollbar Styling */
+    .table-responsive::-webkit-scrollbar {
+        width: 6px;
+    }
+    .table-responsive::-webkit-scrollbar-thumb {
+        background: #dee2e6;
+        border-radius: 10px;
+    }
+</style>
+{% endblock %}

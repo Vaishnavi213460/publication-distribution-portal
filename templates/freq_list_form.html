@@ -1,0 +1,109 @@
+{% extends 'adminheader.html' %}
+{% block content %}
+
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow-sm border-0 h-100" style="border-radius: 15px;">
+                <div class="card-body p-4">
+                    <h4 class="mb-4 fw-bold text-warning">
+                        <i class="fas fa-clock me-2"></i>Manage Frequency
+                    </h4>
+                    <p class="text-muted small mb-4">Define distribution cycles (e.g., Daily, Weekly, Monthly).</p>
+
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold text-muted">Set Frequency Name</label>
+                            <div class="frequency-input-wrapper">
+                                {{ form.as_p }}
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-warning btn-lg w-100 shadow-0 py-3 text-white fw-bold" style="border-radius: 10px;">
+                            Save Frequency
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8 mb-4">
+            <div class="card shadow-sm border-0 h-100" style="border-radius: 15px;">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="fw-bold text-dark m-0">Frequency Data</h4>
+                        <span class="badge rounded-pill bg-light text-dark border px-3 py-2">
+                            Total: {{ data|length }}
+                        </span>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="border-0 text-muted py-3 px-4">ID</th>
+                                    <th class="border-0 text-muted py-3">Frequency Cycle</th>
+                                    <th class="border-0 text-muted py-3 text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for i in data %}
+                                <tr>
+                                    <td class="py-3 px-4 text-muted">#{{ i.id }}</td>
+                                    <td class="py-3">
+                                        <span class="fw-bold text-dark">{{ i.frequency }}</span>
+                                    </td>
+                                    <td class="py-3 text-center">
+                                        <div class="d-flex justify-content-center gap-2">
+                                            <a href="{% url 'frequency_edit' i.id %}" class="btn btn-sm btn-outline-primary px-3 shadow-0">
+                                                <i class="fas fa-edit me-1"></i> Edit
+                                            </a>
+                                            <a href="{% url 'frequency_delete' i.id %}" class="btn btn-sm btn-outline-danger px-3 shadow-0">
+                                                <i class="fas fa-trash me-1"></i> Delete
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center py-5 text-muted">
+                                        <i class="fas fa-info-circle me-2"></i>No frequency records found.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Clean up Django's default .as_p styling */
+    .frequency-input-wrapper p label {
+        display: none; /* Hiding default label as we use a custom one above */
+    }
+    .frequency-input-wrapper p input {
+        display: block;
+        width: 100%;
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+        color: #212529;
+        background-color: #fff;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        transition: all 0.2s ease-in-out;
+    }
+    .frequency-input-wrapper p input:focus {
+        border-color: #ffc107;
+        outline: 0;
+        box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.15);
+    }
+    /* Table hover effect */
+    .table-hover tbody tr:hover {
+        background-color: rgba(0, 0, 0, 0.02);
+    }
+</style>
+{% endblock %}

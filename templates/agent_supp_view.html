@@ -1,0 +1,63 @@
+{% extends 'agentheader.html' %}
+{% block content %}
+<div class="container py-4">
+    <div class="card shadow-sm border-0" style="border-radius: 15px;">
+        <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="fw-bold text-primary m-0">
+<!--                    <i class="fa fa-truck me-2"></i>-->
+                    Publication Suppliers
+                </h4>
+                <span class="badge rounded-pill bg-light text-dark border px-3 py-2">
+                    {{ list|length }} Partners
+                </span>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="border-0 py-3">Code</th>
+                            <th class="border-0 py-3">Supplier Name</th>
+                            <th class="border-0 py-3">Phone</th>
+                            <th class="border-0 py-3">Address</th>
+                            <th class="border-0 py-3">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for i in list %}
+                        <tr>
+                            <td><span class="badge badge-light border text-dark">#{{ i.code }}</span></td>
+                            <td><span class="fw-bold text-dark">{{ i.name }}</span></td>
+                            <td><i class="fa fa-phone-square text-muted me-1"></i> {{ i.phone }}</td>
+                            <td class="text-muted small" style="max-width: 250px;">{{ i.address }}</td>
+                            <td>
+                                <span class="badge {% if i.status|lower == 'active' %}bg-success{% else %}bg-secondary{% endif %}">
+                                    {{ i.status }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-muted">
+                                <i class="fa fa-info-circle me-2"></i>No suppliers available to view.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .table td {
+        padding: 1.2rem 0.75rem;
+    }
+    .badge-success {
+        background-color: #28a745;
+        color: #fff;
+    }
+</style>
+{% endblock %}
