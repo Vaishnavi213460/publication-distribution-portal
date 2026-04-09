@@ -1,0 +1,72 @@
+{% extends 'header_footer.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5" style="max-width:900px;">
+    <h2 class="mb-4 fw-bold">Checkout</h2>
+
+    {% if not cart_items %}
+        <div class="alert alert-warning">Your cart is empty. <a href="{% url 'customer_shop' %}">Continue shopping</a></div>
+    {% else %}
+    <div class="row g-4">
+
+        <!-- Order Summary -->
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Order Summary</h5>
+                    <table class="table table-borderless align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Product</th>
+                                <th class="text-center">Qty</th>
+                                <th class="text-end">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in cart_items %}
+                            <tr>
+                                <td>{{ item.product.name }}</td>
+                                <td class="text-center">{{ item.qty }}</td>
+                                <td class="text-end text-success fw-bold">₹{{ item.subtotal }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr class="border-top">
+                                <td colspan="2" class="fw-bold fs-5">Total</td>
+                                <td class="text-end fw-bold fs-5 text-success">₹{{ total }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Place Order -->
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Delivery Details</h5>
+                    <p class="text-muted mb-1"><i class="fa fa-user me-2"></i>{{ request.user.get_full_name|default:request.user.username }}</p>
+                    <p class="text-muted mb-3"><i class="fa fa-envelope me-2"></i>{{ request.user.email }}</p>
+                    <hr>
+                    <p class="text-muted small">
+                        <i class="fa fa-truck me-2"></i>
+                        Estimated delivery: <strong>3–7 business days</strong> after placing order.
+                    </p>
+                    <form method="post" action="{% url 'checkout' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-warning w-100 fw-bold py-2 mt-2" style="background:#c59a2c;color:#fff;border:none;">
+                            PLACE ORDER
+                        </button>
+                    </form>
+                    <a href="{% url 'cart' %}" class="btn btn-outline-secondary w-100 mt-2">← Back to Cart</a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

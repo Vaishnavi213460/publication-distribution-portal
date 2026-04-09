@@ -59,53 +59,32 @@
                                     <span>1</span>
                                 </a>
                             </li>
+                            <!-- Replace the cart-icon <li> with this -->
                             <li class="cart-icon">
-                                <a href="#">
+                                <a href="{% url 'cart' %}">
                                     <i class="icon_bag_alt"></i>
-                                    <span>3</span>
+                                    <span id="cart-count">0</span>
                                 </a>
                                 <div class="cart-hover">
                                     <div class="select-items">
-                                        <table>
-                                            <tbody>
-                                                <tr>
-                                                    <td class="si-pic"><img src="{% static 'img/select-product-1.jpg' %}" alt=""></td>
-                                                    <td class="si-text">
-                                                        <div class="product-selected">
-                                                            <p>$60.00 x 1</p>
-                                                            <h6>Kabino Bedside Table</h6>
-                                                        </div>
-                                                    </td>
-                                                    <td class="si-close">
-                                                        <i class="ti-close"></i>
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td class="si-pic"><img src="{% static 'img/select-product-2.jpg' %}" alt=""></td>
-                                                    <td class="si-text">
-                                                        <div class="product-selected">
-                                                            <p>$60.00 x 1</p>
-                                                            <h6>Kabino Bedside Table</h6>
-                                                        </div>
-                                                    </td>
-                                                    <td class="si-close">
-                                                        <i class="ti-close"></i>
-                                                    </td>
-                                                </tr>
+                                        <table id="cart-hover-table">
+                                            <tbody id="cart-hover-body">
+                                                <!-- Filled by JS -->
                                             </tbody>
                                         </table>
                                     </div>
                                     <div class="select-total">
                                         <span>total:</span>
-                                        <h5>$120.00</h5>
+                                        <h5 id="cart-hover-total">₹0.00</h5>
                                     </div>
                                     <div class="select-button">
-                                        <a href="#" class="primary-btn view-card">VIEW CARD</a>
-                                        <a href="#" class="primary-btn checkout-btn">CHECK OUT</a>
+                                        <a href="{% url 'cart' %}" class="primary-btn view-card">VIEW CART</a>
+                                        <a href="{% url 'checkout' %}" class="primary-btn checkout-btn">CHECK OUT</a>
                                     </div>
                                 </div>
                             </li>
-                            <li class="cart-price">$150.00</li>
+                            <li class="cart-price" id="cart-hover-price">₹0.00</li>
+                            
                         </ul>
                     </div>
                 </div>
@@ -240,6 +219,78 @@
     <script src="{% static 'js/jquery.slicknav.js' %}"></script>
     <script src="{% static 'js/owl.carousel.min.js' %}"></script>
     <script src="{% static 'js/main.js' %}"></script>
+
+<div id="django-data"
+     data-authenticated="{{ user.is_authenticated|lower }}"
+     data-cart-url="{% url 'cart_data_api' %}"
+     data-remove-url="{% url 'remove_from_cart' %}"
+     data-cart-page="{% url 'cart' %}"
+     data-checkout-page="{% url 'checkout' %}"
+     data-csrf="{{ csrf_token }}"
+     style="display:none;">
+</div>
+
+<script>
+    const _django = document.getElementById('django-data').dataset;
+
+    function loadCartData() {
+        if (_django.authenticated !== 'true') return;
+
+        fetch(_django.cartUrl)
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('cart-count').textContent = data.total_items;
+                document.getElementById('cart-hover-price').textContent = '₹' + data.total.toFixed(2);
+                document.getElementById('cart-hover-total').textContent = '₹' + data.total.toFixed(2);
+
+                const tbody = document.getElementById('cart-hover-body');
+                tbody.innerHTML = '';
+
+                if (data.items.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="3" style="padding:10px;text-align:center;color:#999;">Cart is empty</td></tr>';
+                    return;
+                }
+
+                data.items.forEach(item => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td class="si-pic">
+                                <img src="/static/img/select-product-1.jpg" alt="${item.name}">
+                            </td>
+                            <td class="si-text">
+                                <div class="product-selected">
+                                    <p>₹${item.price.toFixed(2)} x ${item.qty}</p>
+                                    <h6>${item.name}</h6>
+                                </div>
+                            </td>
+                            <td class="si-close">
+                                <i class="ti-close" style="cursor:pointer" onclick="removeFromCart(${item.id})"></i>
+                            </td>
+                        </tr>`;
+                });
+            })
+            .catch(err => console.error('Cart load error:', err));
+    }
+
+    function removeFromCart(itemId) {
+        fetch(_django.removeUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': _django.csrf
+            },
+            body: `item_id=${itemId}`
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.status === 'success') loadCartData();
+        })
+        .catch(err => console.error('Remove error:', err));
+    }
+
+    window.refreshCart = loadCartData;
+    document.addEventListener('DOMContentLoaded', loadCartData);
+</script>
 </body>
 
 </html>
