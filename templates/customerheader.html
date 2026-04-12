@@ -1,47 +1,141 @@
-{% extends 'shared_layout.html' %}
-
+{% extends 'adminheader.html' %}
 {% load static %}
-{% block nav_depart %}
-{% include 'partials/customer_nav.html' %}
+{% comment %}
+Customer base extends admin_base. Overrides accent to coral/red, replaces nav with
+customer-oriented links, and injects the cart dropdown into the topbar.
+{% endcomment %}
+
+{% block title %}Customer Portal — Publication Distribution{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --accent: #DC2626;
+        --accent-light: #FEE2E2;
+    }
+</style>
 {% endblock %}
 
-{% block hero_banner %}
-<!-- Hero Section Begin -->
-<section class="hero-section">
-    <div class="hero-items owl-carousel">
-        <div class="single-hero-items set-bg" data-setbg="{% static 'img/hero-1.jpg' %}">
-            <div class="container">
-                <div class="row">
-                    <div class="col-lg-5">
-                        <span>Bag,kids</span>
-                        <h1>Black friday</h1>
-                        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor
-                            incididunt ut labore et dolore</p>
-                        <a href="#" class="primary-btn">Shop Now</a>
-                    </div>
-                </div>
-                <div class="off-card">
-                    <h2>Sale <span>50%</span></h2>
-                </div>
-            </div>
-        </div>
-        <div class="single-hero-items set-bg" data-setbg="{% static 'img/hero-2.jpg' %}">
-            <div class="container">
-                <div class="row">
-                    <div class="col-lg-5">
-                        <span>Bag,kids</span>
-                        <h1>Black friday</h1>
-                        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor
-                            incididunt ut labore et dolore</p>
-                        <a href="#" class="primary-btn">Shop Now</a>
-                    </div>
-                </div>
-                <div class="off-card">
-                    <h2>Sale <span>50%</span></h2>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-<!-- Hero Section End -->
+{% block sidebar_initials %}{{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1"|default:user.username|slice:":1" }}{% endblock %}
+{% block topbar_initials %}{{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1"|default:user.username|slice:":1" }}{% endblock %}
+{% block breadcrumb %}My Dashboard{% endblock %}
+
+{% block notifications %}
+<div class="notif-row"><div class="ndot g"></div><div><div class="ntext">Your order #1042 was confirmed</div><div class="ntime">1 hour ago</div></div></div>
+<div class="notif-row"><div class="ndot a"></div><div><div class="ntext">Invoice #1042 due May 1</div><div class="ntime">Today</div></div></div>
+<div class="notif-row"><div class="ndot r"></div><div><div class="ntext">Complaint #C09 is in review</div><div class="ntime">Yesterday</div></div></div>
+{% endblock %}
+
+{% block extra_js %}
+{# Django data bridge for cart #}
+<div id="django-data"
+     data-authenticated="{{ user.is_authenticated|lower }}"
+     data-cart-url="{% url 'cart_data_api' %}"
+     data-remove-url="{% url 'remove_from_cart' %}"
+     data-csrf="{{ csrf_token }}"
+     style="display:none;"></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+
+    /* ── Rewrite sidebar for customer ── */
+    const scroll = document.querySelector('.sb-scroll');
+    if (scroll) {
+        scroll.innerHTML = `
+            <div class="sb-section">My Portal</div>
+            <a href="/customer/dashboard/" class="sb-link active">
+                <div class="si"><i class="fa fa-gauge-high"></i></div>
+                <span class="sl">Dashboard</span>
+            </a>
+            <div class="sb-section">Publications</div>
+            <a href="/customer/shop/" class="sb-link">
+                <div class="si"><i class="fa fa-newspaper"></i></div>
+                <span class="sl">Browse Publications</span>
+            </a>
+            <a href="#" class="sb-link">
+                <div class="si"><i class="fa fa-clock-rotate-left"></i></div>
+                <span class="sl">View Frequencies</span>
+            </a>
+            <a href="#" class="sb-link">
+                <div class="si"><i class="fa fa-store"></i></div>
+                <span class="sl">Product Suppliers</span>
+            </a>
+            <div class="sb-section">Orders</div>
+            <a href="#" class="sb-link">
+                <div class="si"><i class="fa fa-bag-shopping"></i></div>
+                <span class="sl">Order Products</span>
+            </a>
+            <a href="#" class="sb-link">
+                <div class="si"><i class="fa fa-ban"></i></div>
+                <span class="sl">Cancellations</span>
+            </a>
+            <div class="sb-section">Account</div>
+            <a href="#" class="sb-link">
+                <div class="si"><i class="fa fa-credit-card"></i></div>
+                <span class="sl">Online Payments</span>
+            </a>
+            <a href="#" class="sb-link">
+                <div class="si"><i class="fa fa-file-invoice-dollar"></i></div>
+                <span class="sl">Invoices</span>
+            </a>
+            <a href="#" class="sb-link">
+                <div class="si"><i class="fa fa-triangle-exclamation"></i></div>
+                <span class="sl">Complaint Registration</span>
+            </a>
+            <a href="#" class="sb-link">
+                <div class="si"><i class="fa fa-envelope"></i></div>
+                <span class="sl">Mail Facility</span>
+            </a>
+            <div class="sb-section">Find</div>
+            <a href="#" class="sb-link">
+                <div class="si"><i class="fa fa-magnifying-glass"></i></div>
+                <span class="sl">Search Agents</span>
+            </a>
+            <a href="#" class="sb-link">
+                <div class="si"><i class="fa fa-map-pin"></i></div>
+                <span class="sl">Agent Location</span>
+            </a>
+            <a href="#" class="sb-link">
+                <div class="si"><i class="fa fa-truck"></i></div>
+                <span class="sl">Delivery Rounds</span>
+            </a>
+        `;
+    }
+
+    /* ── Brand subtitle & role ── */
+    const brandSub = document.querySelector('.sb-sub');
+    if (brandSub) brandSub.textContent = 'Customer Portal';
+    document.querySelectorAll('.sb-urole, .ur').forEach(el => el.textContent = 'Customer');
+
+    /* ── Inject cart icon into topbar actions (before notifications) ── */
+    const actions = document.querySelector('.tb-actions');
+    if (actions) {
+        const cartWrap = document.createElement('div');
+        cartWrap.className = 'dd-wrap';
+        cartWrap.innerHTML = `
+            <a href="{% url 'cart' %}" class="ib" id="cart-btn" style="text-decoration:none;">
+                <i class="fa fa-bag-shopping"></i>
+                <span id="cart-count" class="dot" style="background:var(--accent);color:#fff;font-size:9px;display:flex;align-items:center;justify-content:center;border-radius:50%;width:14px;height:14px;top:3px;right:3px;border:1.5px solid #fff;font-family:DM Mono,monospace;">0</span>
+            </a>
+        `;
+        actions.insertBefore(cartWrap, actions.firstChild);
+    }
+
+    /* ── Cart data loader ── */
+    const dj = document.getElementById('django-data');
+    if (!dj || dj.dataset.authenticated !== 'true') return;
+
+    function loadCart() {
+        fetch(dj.dataset.cartUrl)
+            .then(r => r.json())
+            .then(data => {
+                const cnt = document.getElementById('cart-count');
+                if (cnt) cnt.textContent = data.total_items || 0;
+            })
+            .catch(err => console.error('Cart error:', err));
+    }
+    window.refreshCart = loadCart;
+    loadCart();
+});
+</script>
 {% endblock %}

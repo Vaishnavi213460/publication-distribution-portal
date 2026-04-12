@@ -139,15 +139,18 @@
     var timerdate = mm + '/' + dd + '/' + yyyy;
     // For demo preview end
 
-    console.log(timerdate);
+
     
 
     // Use this for real timer date
     /* var timerdate = "2020/01/01"; */
 
-	$("#countdown").countdown(timerdate, function(event) {
-        $(this).html(event.strftime("<div class='cd-item'><span>%D</span> <p>Days</p> </div>" + "<div class='cd-item'><span>%H</span> <p>Hrs</p> </div>" + "<div class='cd-item'><span>%M</span> <p>Mins</p> </div>" + "<div class='cd-item'><span>%S</span> <p>Secs</p> </div>"));
-    });
+	if ($("#countdown").length) {
+		$("#countdown").countdown(timerdate, function(event) {
+	        $(this).html(event.strftime("<div class='cd-item'><span>%D</span> <p>Days</p> </div>" + "<div class='cd-item'><span>%H</span> <p>Hrs</p> </div>" + "<div class='cd-item'><span>%M</span> <p>Mins</p> </div>" + "<div class='cd-item'><span>%S</span> <p>Secs</p> </div>"));
+	    });
+	}
+
 
         
     /*----------------------------------------------------
@@ -155,26 +158,31 @@
     ----------------------------------------------------*/
     $(document).ready(function(e) {
     //no use
-    try {
-        var pages = $("#pages").msDropdown({on:{change:function(data, ui) {
-            var val = data.value;
-            if(val!="")
-                window.location = val;
-        }}}).data("dd");
+    if ($("#pages").length) {
+        try {
+            var pages = $("#pages").msDropdown({on:{change:function(data, ui) {
+                var val = data.value;
+                if(val!="")
+                    window.location = val;
+            }}}).data("dd");
 
-        var pagename = document.location.pathname.toString();
-        pagename = pagename.split("/");
-        pages.setIndexByValue(pagename[pagename.length-1]);
-        $("#ver").html(msBeautify.version.msDropdown);
-    } catch(e) {
-        // console.log(e);
+            var pagename = document.location.pathname.toString();
+            pagename = pagename.split("/");
+            pages.setIndexByValue(pagename[pagename.length-1]);
+            $("#ver").html(msBeautify.version.msDropdown);
+        } catch(e) {
+            // console.log(e);
+        }
     }
     $("#ver").html(msBeautify.version.msDropdown);
 
     //convert
-    $(".language_drop").msDropdown({roundedBorder:false});
+    if ($(".language_drop").length) {
+        $(".language_drop").msDropdown({roundedBorder:false});
+    }
         $("#tech").data("dd");
     });
+
     /*-------------------
 		Range Slider
 	--------------------- */
@@ -207,7 +215,10 @@
     /*-------------------
 		Nice Select
     --------------------- */
-    $('.sorting, .p-show').niceSelect();
+    if ($('.sorting, .p-show').length) {
+        $('.sorting, .p-show').niceSelect();
+    }
+
 
     /*------------------
 		Single Product

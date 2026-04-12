@@ -1,8 +1,401 @@
-{% extends 'shared_layout.html' %}
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin — Publication Distribution Portal{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    {% block extra_css %}{% endblock %}
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --sidebar-w: 240px;
+            --sidebar-col-w: 64px;
+            --topbar-h: 56px;
+            --bg: #F4F6FA;
+            --sidebar-bg: #0F172A;
+            --sidebar-text: #94A3B8;
+            --sidebar-hover: rgba(255,255,255,.05);
+            --sidebar-active: #1E293B;
+            --accent: #6366F1;
+            --accent-light: #EEF2FF;
+            --card: #FFFFFF;
+            --text: #0F172A;
+            --text-2: #64748B;
+            --border: #E2E8F0;
+            --shadow: 0 1px 3px rgba(0,0,0,.07),0 1px 2px rgba(0,0,0,.04);
+            --radius: 10px;
+        }
+        body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); font-size:14px; line-height:1.5; display:flex; min-height:100vh; }
 
-{% block nav_depart %}
-{% include 'partials/admin_nav.html' %}
-{% endblock %}
+        /* SIDEBAR */
+        .sidebar { width:var(--sidebar-w); background:var(--sidebar-bg); display:flex; flex-direction:column; position:fixed; top:0; left:0; bottom:0; z-index:100; transition:width .2s; overflow:hidden; }
+        body.col .sidebar { width:var(--sidebar-col-w); }
+        .sb-brand { height:var(--topbar-h); display:flex; align-items:center; gap:10px; padding:0 16px; border-bottom:1px solid rgba(255,255,255,.06); flex-shrink:0; }
+        .sb-icon { width:32px; height:32px; background:var(--accent); border-radius:8px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:15px; flex-shrink:0; }
+        .sb-title { font-size:13px; font-weight:600; color:#F8FAFC; white-space:nowrap; }
+        .sb-sub { font-size:10px; color:var(--sidebar-text); font-weight:400; }
+        body.col .sb-title, body.col .sb-sub { display:none; }
 
-{% block hero_banner %}
-{% endblock %}
+        .sb-scroll { flex:1; overflow-y:auto; overflow-x:hidden; padding:10px 0; }
+        .sb-scroll::-webkit-scrollbar { width:3px; }
+        .sb-scroll::-webkit-scrollbar-thumb { background:rgba(255,255,255,.08); border-radius:3px; }
+
+        .sb-section { padding:8px 12px 3px; font-size:10px; font-weight:600; letter-spacing:.08em; color:#475569; text-transform:uppercase; white-space:nowrap; }
+        body.col .sb-section { opacity:0; pointer-events:none; }
+
+        .sb-link { display:flex; align-items:center; gap:10px; padding:9px 16px; color:var(--sidebar-text); text-decoration:none; font-size:13px; cursor:pointer; white-space:nowrap; transition:background .12s,color .12s; position:relative; border:none; background:none; width:100%; text-align:left; }
+        .sb-link:hover { background:var(--sidebar-hover); color:#E2E8F0; }
+        .sb-link.active { background:var(--sidebar-active); color:#F8FAFC; font-weight:500; }
+        .sb-link.active::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--accent); border-radius:0 2px 2px 0; }
+        .sb-link .si { width:20px; height:20px; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
+        .sb-link .sl { flex:1; overflow:hidden; }
+        .sb-link .sa { font-size:10px; color:#475569; transition:transform .2s; }
+        .sb-link.open .sa { transform:rotate(90deg); }
+        .sb-link .sbadge { background:var(--accent); color:#fff; font-size:10px; padding:1px 6px; border-radius:20px; }
+
+        .sb-sub-menu { display:none; background:rgba(0,0,0,.18); }
+        .sb-sub-menu.open { display:block; }
+        .sb-sub-menu .sb-link { padding:7px 16px 7px 46px; font-size:12.5px; color:#64748B; }
+        .sb-sub-menu .sb-link:hover { color:#CBD5E1; }
+        .sb-sub-menu .sb-link.active { color:#F8FAFC; background:rgba(99,102,241,.12); }
+        .sb-sub-menu .sb-link.active::before { opacity:.5; }
+
+        .sb-footer { border-top:1px solid rgba(255,255,255,.06); padding:12px 16px; display:flex; align-items:center; gap:10px; flex-shrink:0; }
+        .sb-av { width:32px; height:32px; border-radius:50%; background:var(--accent); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:600; color:#fff; flex-shrink:0; }
+        .sb-uname { font-size:12px; font-weight:500; color:#E2E8F0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .sb-urole { font-size:10px; color:#475569; }
+        .sb-logout { margin-left:auto; background:none; border:none; color:#475569; cursor:pointer; font-size:14px; flex-shrink:0; }
+        .sb-logout:hover { color:#F87171; }
+        body.col .sb-uinfo, body.col .sb-logout { display:none; }
+
+        /* MAIN */
+        .main { margin-left:var(--sidebar-w); flex:1; display:flex; flex-direction:column; min-height:100vh; transition:margin-left .2s; }
+        body.col .main { margin-left:var(--sidebar-col-w); }
+
+        /* TOPBAR */
+        .topbar { height:var(--topbar-h); background:var(--card); border-bottom:1px solid var(--border); display:flex; align-items:center; gap:12px; padding:0 24px; position:sticky; top:0; z-index:50; box-shadow:var(--shadow); }
+        .tb-toggle { background:none; border:none; color:var(--text-2); cursor:pointer; font-size:16px; width:32px; height:32px; display:flex; align-items:center; justify-content:center; border-radius:6px; }
+        .tb-toggle:hover { background:var(--bg); }
+        .tb-crumb { display:flex; align-items:center; gap:6px; font-size:13px; color:var(--text-2); }
+        .tb-crumb .cur { color:var(--text); font-weight:500; }
+        .tb-search { flex:1; max-width:340px; margin-left:16px; position:relative; }
+        .tb-search input { width:100%; height:34px; border:1px solid var(--border); border-radius:8px; padding:0 12px 0 34px; font-size:13px; font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); outline:none; transition:border-color .15s; }
+        .tb-search input::placeholder { color:#94A3B8; }
+        .tb-search input:focus { border-color:var(--accent); background:#fff; }
+        .tb-search .si { position:absolute; left:10px; top:50%; transform:translateY(-50%); color:#94A3B8; font-size:13px; }
+        .tb-actions { margin-left:auto; display:flex; align-items:center; gap:8px; }
+        .ib { width:34px; height:34px; border:1px solid var(--border); border-radius:8px; background:none; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text-2); font-size:14px; position:relative; transition:background .12s; text-decoration:none; }
+        .ib:hover { background:var(--bg); }
+        .ib .dot { position:absolute; top:6px; right:6px; width:7px; height:7px; background:#EF4444; border-radius:50%; border:1.5px solid #fff; }
+
+        /* Dropdowns */
+        .dd-wrap { position:relative; }
+        .dd { position:absolute; top:calc(100% + 8px); right:0; background:#fff; border:1px solid var(--border); border-radius:var(--radius); box-shadow:0 8px 24px rgba(0,0,0,.1); display:none; z-index:200; }
+        .dd.open { display:block; }
+        .notif-dd { width:300px; }
+        .dd-head { padding:12px 16px; border-bottom:1px solid var(--border); font-size:13px; font-weight:600; display:flex; justify-content:space-between; align-items:center; }
+        .dd-head a { font-size:12px; color:var(--accent); text-decoration:none; font-weight:400; }
+        .notif-list { max-height:270px; overflow-y:auto; }
+        .notif-row { padding:10px 16px; border-bottom:1px solid var(--border); display:flex; gap:10px; align-items:flex-start; }
+        .notif-row:last-child { border-bottom:none; }
+        .ndot { width:8px; height:8px; border-radius:50%; flex-shrink:0; margin-top:5px; }
+        .ndot.r { background:#EF4444; } .ndot.a { background:#F59E0B; } .ndot.g { background:#10B981; }
+        .ntext { font-size:12.5px; } .ntime { font-size:11px; color:var(--text-2); margin-top:2px; }
+        .dd-foot { padding:10px 16px; text-align:center; }
+        .dd-foot a { font-size:12px; color:var(--accent); text-decoration:none; font-weight:500; }
+
+        .user-chip { display:flex; align-items:center; gap:8px; padding:4px 10px 4px 4px; border:1px solid var(--border); border-radius:30px; cursor:pointer; background:none; transition:background .12s; }
+        .user-chip:hover { background:var(--bg); }
+        .chip-av { width:26px; height:26px; border-radius:50%; background:var(--accent); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:600; color:#fff; }
+        .chip-name { font-size:12.5px; font-weight:500; }
+        .chip-caret { font-size:10px; color:var(--text-2); }
+        .user-dd { width:200px; overflow:hidden; }
+        .udd-info { padding:12px 14px; border-bottom:1px solid var(--border); }
+        .udd-info .un { font-size:13px; font-weight:600; }
+        .udd-info .ur { font-size:11px; color:var(--text-2); }
+        .user-dd a { display:flex; align-items:center; gap:10px; padding:9px 14px; font-size:13px; color:var(--text); text-decoration:none; transition:background .1s; }
+        .user-dd a:hover { background:var(--bg); }
+        .user-dd a.dng { color:#EF4444; }
+        .user-dd a i { width:14px; text-align:center; color:var(--text-2); font-size:13px; }
+        .user-dd a.dng i { color:#FCA5A5; }
+
+        /* CONTENT */
+        .page-body { flex:1; padding:24px; }
+        .pg-header { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:22px; gap:12px; }
+        .pg-title { font-size:20px; font-weight:600; }
+        .pg-subtitle { font-size:13px; color:var(--text-2); margin-top:3px; }
+
+        /* Stat cards */
+        .stat-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:16px; margin-bottom:22px; }
+        .stat-card { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:16px 18px; display:flex; align-items:flex-start; gap:14px; box-shadow:var(--shadow); }
+        .stat-ico { width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
+        .stat-val { font-size:22px; font-weight:600; font-family:'DM Mono',monospace; }
+        .stat-lbl { font-size:12px; color:var(--text-2); margin-bottom:2px; }
+        .stat-chg { font-size:11px; margin-top:2px; }
+        .up { color:#10B981; } .dn { color:#EF4444; }
+
+        /* Card */
+        .card { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); }
+        .card-head { padding:14px 18px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+        .card-title { font-size:14px; font-weight:600; }
+        .card-body { padding:18px; }
+
+        /* Table */
+        .tbl { width:100%; border-collapse:collapse; font-size:13px; }
+        .tbl th { text-align:left; padding:10px 14px; font-size:11px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:var(--text-2); border-bottom:1px solid var(--border); background:#F8FAFC; }
+        .tbl td { padding:11px 14px; border-bottom:1px solid var(--border); vertical-align:middle; }
+        .tbl tr:last-child td { border-bottom:none; }
+        .tbl tbody tr:hover { background:#F8FAFC; }
+
+        /* Badge */
+        .badge { display:inline-block; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:500; }
+        .b-green { background:#DCFCE7; color:#166534; }
+        .b-amber { background:#FEF3C7; color:#92400E; }
+        .b-red { background:#FEE2E2; color:#991B1B; }
+        .b-blue { background:#DBEAFE; color:#1E40AF; }
+        .b-gray { background:#F1F5F9; color:#475569; }
+        .b-purple { background:var(--accent-light); color:var(--accent); }
+
+        /* Buttons */
+        .btn { display:inline-flex; align-items:center; gap:6px; padding:8px 16px; border-radius:8px; font-size:13px; font-weight:500; font-family:'DM Sans',sans-serif; cursor:pointer; border:none; text-decoration:none; transition:opacity .12s,transform .1s; }
+        .btn:active { transform:scale(.98); }
+        .btn-primary { background:var(--accent); color:#fff; }
+        .btn-primary:hover { opacity:.9; }
+        .btn-outline { background:#fff; color:var(--text); border:1px solid var(--border); }
+        .btn-outline:hover { background:var(--bg); }
+        .btn-sm { padding:5px 12px; font-size:12px; }
+
+        /* Form */
+        .form-group { margin-bottom:16px; }
+        .form-label { display:block; font-size:12px; font-weight:500; color:var(--text-2); margin-bottom:5px; }
+        .form-control { width:100%; height:36px; border:1px solid var(--border); border-radius:8px; padding:0 12px; font-size:13px; font-family:'DM Sans',sans-serif; color:var(--text); background:#fff; outline:none; transition:border-color .15s; }
+        .form-control:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(99,102,241,.1); }
+
+        /* Footer */
+        .pg-footer { padding:16px 24px; border-top:1px solid var(--border); background:var(--card); font-size:12px; color:var(--text-2); display:flex; align-items:center; justify-content:space-between; }
+        .pg-footer a { color:var(--accent); text-decoration:none; }
+
+        /* Mobile */
+        .sb-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:99; }
+        @media(max-width:768px) {
+            .sidebar { left:calc(-1 * var(--sidebar-w)); }
+            .sidebar.mob { left:0; }
+            .sb-overlay.active { display:block; }
+            .main { margin-left:0 !important; }
+            .tb-search { display:none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="sb-overlay" id="sb-overlay" onclick="closeSb()"></div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+    <div class="sb-brand">
+        <div class="sb-icon"><i class="fa fa-newspaper"></i></div>
+        <div>
+            <div class="sb-title">PubDistro</div>
+            <div class="sb-sub">Admin Portal</div>
+        </div>
+    </div>
+
+    <div class="sb-scroll">
+        <div class="sb-section">Overview</div>
+        <a href="{% url 'admin_dashboard' %}" class="sb-link active">
+            <div class="si"><i class="fa fa-gauge-high"></i></div>
+            <span class="sl">Dashboard</span>
+        </a>
+
+        <div class="sb-section">Management</div>
+
+        <button class="sb-link" onclick="toggleSub('sub-dist',this)">
+            <div class="si"><i class="fa fa-map-marker-alt"></i></div>
+            <span class="sl">Distributors</span>
+            <i class="fa fa-chevron-right sa"></i>
+        </button>
+        <div class="sb-sub-menu" id="sub-dist">
+            <a href="#" class="sb-link">Add Location</a>
+            <a href="{% url 'location_list' %}" class="sb-link">View Locations</a>
+            <a href="#" class="sb-link">Update Frequency Details</a>
+        </div>
+
+        <button class="sb-link" onclick="toggleSub('sub-prod',this)">
+            <div class="si"><i class="fa fa-box-open"></i></div>
+            <span class="sl">Products</span>
+            <i class="fa fa-chevron-right sa"></i>
+        </button>
+        <div class="sb-sub-menu" id="sub-prod">
+            <a href="{% url 'product_list' %}" class="sb-link">View Products</a>
+            <a href="#" class="sb-link">Add / Update Product</a>
+            <a href="{% url 'frequency_list' %}" class="sb-link">Manage Frequencies</a>
+        </div>
+
+        <button class="sb-link" onclick="toggleSub('sub-agent',this)">
+            <div class="si"><i class="fa fa-person-biking"></i></div>
+            <span class="sl">Agents</span>
+            <i class="fa fa-chevron-right sa"></i>
+        </button>
+        <div class="sb-sub-menu" id="sub-agent">
+            <a href="#" class="sb-link">View &amp; Active Agents</a>
+            <a href="#" class="sb-link">Map to Suppliers</a>
+            <a href="#" class="sb-link">Delivery Rounds</a>
+            <a href="#" class="sb-link">Delivery Stock</a>
+            <a href="#" class="sb-link">Agent Stock</a>
+        </div>
+
+        <a href="{% url 'supplier_list' %}" class="sb-link">
+            <div class="si"><i class="fa fa-truck"></i></div>
+            <span class="sl">Suppliers</span>
+        </a>
+
+        <button class="sb-link" onclick="toggleSub('sub-cust',this)">
+            <div class="si"><i class="fa fa-users"></i></div>
+            <span class="sl">Customers</span>
+            <i class="fa fa-chevron-right sa"></i>
+        </button>
+        <div class="sb-sub-menu" id="sub-cust">
+            <a href="#" class="sb-link">View Customers</a>
+            <a href="#" class="sb-link">Customer Orders</a>
+            <a href="#" class="sb-link">Complaints</a>
+        </div>
+
+        <div class="sb-section">Reports</div>
+
+        <button class="sb-link" onclick="toggleSub('sub-rep',this)">
+            <div class="si"><i class="fa fa-chart-bar"></i></div>
+            <span class="sl">Reports</span>
+            <i class="fa fa-chevron-right sa"></i>
+        </button>
+        <div class="sb-sub-menu" id="sub-rep">
+            <a href="#" class="sb-link">Invoices</a>
+            <a href="#" class="sb-link">Manage News</a>
+            <a href="#" class="sb-link">View Complaints</a>
+        </div>
+
+        <div class="sb-section">System</div>
+        <a href="#" class="sb-link">
+            <div class="si"><i class="fa fa-gear"></i></div>
+            <span class="sl">Settings</span>
+        </a>
+    </div>
+
+    <div class="sb-footer">
+        <div class="sb-av">{% block sidebar_initials %}{{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1"|default:user.username|slice:":1" }}{% endblock %}</div>
+        <div class="sb-uinfo">
+            <div class="sb-uname">{{ user.get_full_name|default:user.username }}</div>
+            <div class="sb-urole">Administrator</div>
+        </div>
+        <a href="{% url 'login' %}" class="sb-logout" title="Logout"><i class="fa fa-sign-out-alt"></i></a>
+    </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+
+    <header class="topbar">
+        <button class="tb-toggle" onclick="toggleSb()"><i class="fa fa-bars"></i></button>
+        <div class="tb-crumb">
+            <span>Admin</span>
+            <i class="fa fa-chevron-right" style="font-size:9px;color:#CBD5E1;"></i>
+            <span class="cur">{% block breadcrumb %}Dashboard{% endblock %}</span>
+        </div>
+        <div class="tb-search">
+            <i class="fa fa-search si"></i>
+            <input type="text" placeholder="Search anything...">
+        </div>
+        <div class="tb-actions">
+
+            <!-- Notifications -->
+            <div class="dd-wrap">
+                <button class="ib" onclick="toggleDd('dd-notif')">
+                    <i class="fa fa-bell"></i><span class="dot"></span>
+                </button>
+                <div class="dd notif-dd" id="dd-notif">
+                    <div class="dd-head">Notifications <a href="#">Mark all read</a></div>
+                    <div class="notif-list">
+                        {% block notifications %}
+                        <div class="notif-row"><div class="ndot r"></div><div><div class="ntext">Low stock — Mangalam</div><div class="ntime">2 hours ago</div></div></div>
+                        <div class="notif-row"><div class="ndot a"></div><div><div class="ntext">New complaint — Suma George</div><div class="ntime">4 hours ago</div></div></div>
+                        <div class="notif-row"><div class="ndot g"></div><div><div class="ntext">Agent Rajesh K. activated</div><div class="ntime">Yesterday</div></div></div>
+                        {% endblock %}
+                    </div>
+                    <div class="dd-foot"><a href="#">View all notifications</a></div>
+                </div>
+            </div>
+
+            <!-- User menu -->
+            <div class="dd-wrap">
+                <button class="user-chip" onclick="toggleDd('dd-user')">
+                    <div class="chip-av">{% block topbar_initials %}{{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1"|default:user.username|slice:":1" }}{% endblock %}</div>
+                    <span class="chip-name">{{ user.get_full_name|default:user.username }}</span>
+                    <i class="fa fa-chevron-down chip-caret"></i>
+                </button>
+                <div class="dd user-dd" id="dd-user">
+                    <div class="udd-info">
+                        <div class="un">{{ user.get_full_name|default:user.username }}</div>
+                        <div class="ur">Administrator</div>
+                    </div>
+                    <a href="#"><i class="fa fa-user"></i> My Profile</a>
+                    <a href="#"><i class="fa fa-gear"></i> Settings</a>
+                    <a href="{% url 'login' %}" class="dng"><i class="fa fa-sign-out-alt"></i> Logout</a>
+                </div>
+            </div>
+
+        </div>
+    </header>
+
+    <main class="page-body">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="pg-footer">
+        <span>© <span id="yr"></span> Publication Distribution Portal</span>
+        <span><a href="#">Support</a> · <a href="#">Privacy</a> · <a href="#">Docs</a></span>
+    </footer>
+</div>
+
+{% block extra_js %}{% endblock %}
+<script>
+    document.getElementById('yr').textContent = new Date().getFullYear();
+
+    function toggleSb() {
+        const sb = document.getElementById('sidebar');
+        const ov = document.getElementById('sb-overlay');
+        if (window.innerWidth <= 768) { sb.classList.toggle('mob'); ov.classList.toggle('active'); }
+        else { document.body.classList.toggle('col'); }
+    }
+    function closeSb() {
+        document.getElementById('sidebar').classList.remove('mob');
+        document.getElementById('sb-overlay').classList.remove('active');
+    }
+    function toggleSub(id, el) {
+        const sub = document.getElementById(id);
+        const isOpen = sub.classList.contains('open');
+        document.querySelectorAll('.sb-sub-menu').forEach(s => s.classList.remove('open'));
+        document.querySelectorAll('.sb-link.open').forEach(l => l.classList.remove('open'));
+        if (!isOpen) { sub.classList.add('open'); el.classList.add('open'); }
+    }
+    function toggleDd(id) {
+        const el = document.getElementById(id);
+        const isOpen = el.classList.contains('open');
+        document.querySelectorAll('.dd').forEach(d => d.classList.remove('open'));
+        if (!isOpen) el.classList.add('open');
+    }
+    document.addEventListener('click', e => {
+        if (!e.target.closest('.dd-wrap')) document.querySelectorAll('.dd').forEach(d => d.classList.remove('open'));
+    });
+    document.querySelectorAll('.sidebar a.sb-link, .sb-sub-menu a.sb-link').forEach(link => {
+        if (link.href && link.href === window.location.href) {
+            document.querySelectorAll('.sidebar .sb-link.active').forEach(a => a.classList.remove('active'));
+            link.classList.add('active');
+            const sub = link.closest('.sb-sub-menu');
+            if (sub) { sub.classList.add('open'); const p = sub.previousElementSibling; if (p) p.classList.add('open'); }
+        }
+    });
+</script>
+</body>
+</html>
