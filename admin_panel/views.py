@@ -2,7 +2,9 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from .models import Location, Frequency, Product, Supplier
 from .forms import LocationForm, FrequencyForm, ProductForm, SupplierForm
-
+from login.models import Agent, Customer as LoginCustomer
+from agent.models import AgentSupp
+from customer.models import CustomerOrder
 
 def dashboard(request):
     # return HttpResponse("Welcome to Admin Panel")
@@ -108,3 +110,20 @@ def supplier_delete(request, id):
     obj = get_object_or_404(Supplier, id=id)
     obj.delete()
     return redirect('supplier_list')
+
+
+def agent_list(request):
+    data = Agent.objects.all()
+    return render(request, 'admin_agent_list.html', {'data': data})
+
+def agent_supplier_mapping(request):
+    data = AgentSupp.objects.all().select_related('agent__name', 'supplier__name')
+    return render(request, 'admin_agent_supp_mapping.html', {'data': data})
+
+def customer_list(request):
+    data = Customer.objects.all()
+    return render(request, 'admin_customer_list.html', {'data': data})
+
+def customer_order_list(request):
+    data = CustomerOrder.objects.all().select_related('customer')
+    return render(request, 'admin_customer_orders.html', {'data': data})

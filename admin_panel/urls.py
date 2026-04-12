@@ -24,5 +24,13 @@ urlpatterns = [
     path('supplier/edit/<int:id>/', views.supplier_list_create_update, name='supplier_edit'),
     path('supplier/delete/<int:id>/', views.supplier_delete, name='supplier_delete'),
 
+    # Agent 
+    path('agent/', views.agent_list, name='agent_list'),
+    path('agent-supplier/', views.agent_supplier_mapping, name='agent_supplier_mapping'),
+
+    # Customer
+    path('customer/', views.customer_list, name='customer_list'),
+    path('orders/', views.customer_order_list, name='customer_order_list'),
+
 ]
 

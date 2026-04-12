@@ -1,0 +1,48 @@
+{% extends 'adminheader.html' %}
+{% block title %}Admin — Agents{% endblock %}
+{% block breadcrumb %}Agents{% endblock %}
+
+{% block content %}
+<div class="pg-header">
+    <div>
+        <h1 class="pg-title">Agents</h1>
+        <p class="pg-subtitle">{{ data|length }} total agents</p>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-head">
+        <div class="card-title">All Agents</div>
+    </div>
+    <div class="card-body">
+        <table class="tbl">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Code</th>
+                    <th>Phone</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for agent in data %}
+                <tr>
+                    <td>{{ agent.id }}</td>
+                    <td>{{ agent.name }}</td>
+                    <td>{{ agent.code }}</td>
+                    <td>{{ agent.phone }}</td>
+                    <td><span class="badge b-{% if agent.status == 'Active' %}green{% else %}gray{% endif %}">{{ agent.status }}</span></td>
+                    <td>
+                        <a href="#" class="btn btn-sm btn-primary">Toggle Status</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="text-center py-4">No agents found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

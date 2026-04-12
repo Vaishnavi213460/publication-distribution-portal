@@ -1,0 +1,42 @@
+{% extends 'adminheader.html' %}
+{% block title %}Admin — Customer Orders{% endblock %}
+{% block breadcrumb %}Customer Orders{% endblock %}
+
+{% block content %}
+<div class="pg-header">
+    <div>
+        <h1 class="pg-title">Customer Orders</h1>
+        <p class="pg-subtitle">{{ data|length }} total orders</p>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-head">
+        <div class="card-title">All Orders</div>
+    </div>
+    <div class="card-body">
+        <table class="tbl">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Customer</th>
+                    <th>Order Date</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in data %}
+                <tr>
+                    <td>{{ order.id }}</td>
+                    <td>{{ order.customer.username }}</td>
+                    <td>{{ order.order_date }}</td>
+                    <td><span class="badge b-blue">{{ order.status }}</span></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="text-center py-4">No orders found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

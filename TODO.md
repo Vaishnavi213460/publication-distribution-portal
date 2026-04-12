@@ -1,11 +1,1 @@
-# Task: Display rate/frequency from admin_panel_product_frequency on product-details page
-
-## Steps to complete:
-- [x] Step 1: Create/update TODO.md with progress tracking
-- [x] Step 2: Edit customer/views.py to prefetch frequency data in product_detail view
-- [x] Step 3: Edit templates/product_detail.html to display product frequency
-- [x] Step 4: Test the changes by running the server and checking product detail page
-Step 5: Fixed syntax error in view and marked complete
-
-## Current Status: Starting implementation...
-
+# TODO: Update login page customer registration link (COMPLETE)&#10;&#10;- [x] Create TODO.md with plan steps&#10;- [x] Edit templates/login.html - Update Customer link href from "#!" to "{% url &#39;customer_registration&#39; %}"&#10;- [x] Test the change (verified via code inspection: URL exists, view renders form, link matches agent pattern)&#10;- [x] Mark complete&#10;

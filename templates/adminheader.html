@@ -218,9 +218,9 @@
             <i class="fa fa-chevron-right sa"></i>
         </button>
         <div class="sb-sub-menu" id="sub-dist">
-            <a href="#" class="sb-link">Add Location</a>
+<a href="{% url 'location_list' %}" class="sb-link">Add Location</a>
             <a href="{% url 'location_list' %}" class="sb-link">View Locations</a>
-            <a href="#" class="sb-link">Update Frequency Details</a>
+<a href="{% url 'frequency_list' %}" class="sb-link">Update Frequency Details</a>
         </div>
 
         <button class="sb-link" onclick="toggleSub('sub-prod',this)">
@@ -230,7 +230,7 @@
         </button>
         <div class="sb-sub-menu" id="sub-prod">
             <a href="{% url 'product_list' %}" class="sb-link">View Products</a>
-            <a href="#" class="sb-link">Add / Update Product</a>
+<a href="{% url 'product_list' %}" class="sb-link">Add / Update Product</a>
             <a href="{% url 'frequency_list' %}" class="sb-link">Manage Frequencies</a>
         </div>
 
@@ -240,8 +240,8 @@
             <i class="fa fa-chevron-right sa"></i>
         </button>
         <div class="sb-sub-menu" id="sub-agent">
-            <a href="#" class="sb-link">View &amp; Active Agents</a>
-            <a href="#" class="sb-link">Map to Suppliers</a>
+<a href="{% url 'agent_list' %}" class="sb-link">View & Active Agents</a>
+<a href="{% url 'agent_supplier_mapping' %}" class="sb-link">Map to Suppliers</a>
             <a href="#" class="sb-link">Delivery Rounds</a>
             <a href="#" class="sb-link">Delivery Stock</a>
             <a href="#" class="sb-link">Agent Stock</a>
@@ -258,8 +258,8 @@
             <i class="fa fa-chevron-right sa"></i>
         </button>
         <div class="sb-sub-menu" id="sub-cust">
-            <a href="#" class="sb-link">View Customers</a>
-            <a href="#" class="sb-link">Customer Orders</a>
+<a href="{% url 'customer_list' %}" class="sb-link">View Customers</a>
+<a href="{% url 'customer_order_list' %}" class="sb-link">Customer Orders</a>
             <a href="#" class="sb-link">Complaints</a>
         </div>
 

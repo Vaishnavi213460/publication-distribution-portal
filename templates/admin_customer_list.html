@@ -1,0 +1,44 @@
+{% extends 'adminheader.html' %}
+{% block title %}Admin — Customers{% endblock %}
+{% block breadcrumb %}Customers{% endblock %}
+
+{% block content %}
+<div class="pg-header">
+    <div>
+        <h1 class="pg-title">Customers</h1>
+        <p class="pg-subtitle">{{ data|length }} total customers</p>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-head">
+        <div class="card-title">All Customers</div>
+    </div>
+    <div class="card-body">
+        <table class="tbl">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Email</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for customer in data %}
+                <tr>
+                    <td>{{ customer.id }}</td>
+                    <td>{{ customer.name }}</td>
+                    <td>{{ customer.phone }}</td>
+                    <td>{{ customer.email }}</td>
+                    <td><span class="badge b-{% if customer.status == 'Active' %}green{% else %}gray{% endif %}">{{ customer.status }}</span></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="text-center py-4">No customers found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
