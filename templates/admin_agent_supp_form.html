@@ -1,0 +1,119 @@
+{% extends 'adminheader.html' %}
+
+{% block title %}Admin — Agent-Supplier Mapping{% endblock %}
+{% block breadcrumb %}Agent-Supplier Mapping{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-xl-5 col-lg-6 mb-4">
+            <div class="card shadow-sm border-0" style="border-radius: 15px;">
+                <div class="card-body p-4">
+                    <h4 class="fw-bold text-primary mb-2">
+                        <i class="fa fa-link me-2"></i>Agent-Supplier Mapping
+                    </h4>
+                    <p class="text-muted small mb-4">Link agents to suppliers for publication distribution.</p>
+
+                    <form method="POST">
+                        {% csrf_token %}
+
+                        <div class="row g-3">
+                            {% for field in form %}
+                            <div class="col-12 mb-3">
+                                <label class="form-label fw-bold small text-muted">{{ field.label }}</label>
+                                <div class="custom-input-group">
+                                    {{ field }}
+                                    {% if field.help_text %}
+                                    <small class="form-text text-muted">{{ field.help_text }}</small>
+                                    {% endif %}
+                                </div>
+                                {% if field.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ field.errors }}
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg w-100 shadow-0 py-3" style="border-radius: 10px;">
+                                <i class="fa fa-save me-2"></i>Save Mapping
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-7 col-lg-6 mb-4">
+            <div class="card shadow-sm border-0 h-100" style="border-radius: 15px;">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="fw-bold m-0 text-dark">Mappings List</h4>
+                        <span class="badge rounded-pill bg-primary px-3 py-2">{{ data|length }} Records</span>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="border-0 text-muted py-3">ID</th>
+                                    <th class="border-0 text-muted py-3">Agent</th>
+                                    <th class="border-0 text-muted py-3">Supplier</th>
+                                    <th class="border-0 text-muted py-3">From</th>
+                                    <th class="border-0 text-muted py-3">To</th>
+                                    <th class="border-0 text-muted py-3">Status</th>
+                                    <th class="border-0 text-muted py-3 text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for mapping in data %}
+                                <tr>
+                                    <td><span class="badge badge-light border text-dark">#{{ mapping.id }}</span></td>
+                                    <td><span class="fw-bold text-dark">{{ mapping.agent.name }}</span></td>
+                                    <td>{{ mapping.supplier.name }}</td>
+                                    <td>{{ mapping.from_date|date:"d-M-Y" }}</td>
+                                    <td>{{ mapping.to_date|date:"d-M-Y" }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if mapping.status == 'Active' %}success bg-success{% else %}secondary{% endif %}">
+                                            {{ mapping.status }}
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a href="{% url 'agent_supp_edit' mapping.id %}" class="btn btn-outline-primary">
+                                                <i class="fa fa-edit"></i>
+                                            </a>
+                                            <a href="{% url 'agent_supp_delete' mapping.id %}" class="btn btn-outline-danger" onclick="return confirm('Delete this mapping?')">
+                                                <i class="fa fa-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="7" class="text-center py-5 text-muted">No mappings found. Create first one above.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.custom-input-group input, .custom-input-group select {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+}
+.custom-input-group input:focus {
+    border-color: #1266f1;
+    box-shadow: 0 0 0 0.2rem rgba(18,102,241,0.25);
+}
+.table td { padding: 0.75rem 0.5rem; }
+</style>
+{% endblock %}

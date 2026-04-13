@@ -1,46 +1,5 @@
-{% extends 'adminheader.html' %}
-{% block title %}Admin — Agent-Supplier Mapping{% endblock %}
-{% block breadcrumb %}Agent-Supplier Mapping{% endblock %}
+{% extends 'admin_agent_supp_form.html' %}
 
 {% block content %}
-<div class="pg-header">
-    <div>
-        <h1 class="pg-title">Agent-Supplier Mappings</h1>
-        <p class="pg-subtitle">{{ data|length }} mappings</p>
-    </div>
-</div>
-
-<div class="card">
-    <div class="card-head">
-        <div class="card-title">Mappings</div>
-    </div>
-    <div class="card-body">
-        <table class="tbl">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Agent</th>
-                    <th>Supplier</th>
-                    <th>From Date</th>
-                    <th>To Date</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for mapping in data %}
-                <tr>
-                    <td>{{ mapping.id }}</td>
-                    <td>{{ mapping.agent.name }}</td>
-                    <td>{{ mapping.supplier.name }}</td>
-                    <td>{{ mapping.from_date }}</td>
-                    <td>{{ mapping.to_date }}</td>
-                    <td><span class="badge b-gray">{{ mapping.status }}</span></td>
-                </tr>
-                {% empty %}
-                <tr><td colspan="6" class="text-center py-4">No mappings found.</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-</div>
+  {# Full CRUD template #}
 {% endblock %}

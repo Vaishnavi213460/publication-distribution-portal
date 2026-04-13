@@ -26,7 +26,9 @@ urlpatterns = [
 
     # Agent 
     path('agent/', views.agent_list, name='agent_list'),
-    path('agent-supplier/', views.agent_supplier_mapping, name='agent_supplier_mapping'),
+    path('agent-supplier/', views.agent_supp_list_create_update, name='agent_supplier_mapping'),
+    path('agent-supplier/edit/<int:id>/', views.agent_supp_list_create_update, name='agent_supp_edit'),
+    path('agent-supplier/delete/<int:id>/', views.agent_supp_delete, name='agent_supp_delete'),
 
     # Customer
     path('customer/', views.customer_list, name='customer_list'),

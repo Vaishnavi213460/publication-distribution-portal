@@ -1,8 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from .models import Location, Frequency, Product, Supplier
-from .forms import LocationForm, FrequencyForm, ProductForm, SupplierForm
-from login.models import Agent, Customer as LoginCustomer
+from .forms import LocationForm, FrequencyForm, ProductForm, SupplierForm, AgentSuppForm
+from login.models import Agent, Customer
 from agent.models import AgentSupp
 from customer.models import CustomerOrder
 
@@ -116,9 +116,22 @@ def agent_list(request):
     data = Agent.objects.all()
     return render(request, 'admin_agent_list.html', {'data': data})
 
-def agent_supplier_mapping(request):
-    data = AgentSupp.objects.all().select_related('agent__name', 'supplier__name')
-    return render(request, 'admin_agent_supp_mapping.html', {'data': data})
+def agent_supp_list_create_update(request, id=None):
+
+    obj = get_object_or_404(AgentSupp, id=id) if id else None
+
+    form = AgentSuppForm(request.POST or None, instance=obj)
+
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        return redirect('agent_supplier_mapping')
+
+    data = AgentSupp.objects.select_related('agent', 'supplier')
+
+    return render(request, 'admin_agent_supp_form.html', {
+        'form': form,
+        'data': data
+    })
 
 def customer_list(request):
     data = Customer.objects.all()
@@ -127,3 +140,9 @@ def customer_list(request):
 def customer_order_list(request):
     data = CustomerOrder.objects.all().select_related('customer')
     return render(request, 'admin_customer_orders.html', {'data': data})
+
+
+def agent_supp_delete(request, id):
+    obj = get_object_or_404(AgentSupp, id=id)
+    obj.delete()
+    return redirect('agent_supplier_mapping')
