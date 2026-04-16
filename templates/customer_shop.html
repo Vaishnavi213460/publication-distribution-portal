@@ -1,95 +1,287 @@
-{% extends 'header_footer.html' %}
+{% extends 'customerheader.html' %}
 {% load static %}
+
+{% block title %}Find Your Agent — Publication Distribution{% endblock %}
+{% block breadcrumb %}Find Your Agent{% endblock %}
 
 {% block content %}
 
-<!-- Product Shop Section -->
-<section class="product-shop spad">
-    <div class="container">
-        <div class="row">
+<style>
+.shop-hero {
+    background: linear-gradient(135deg, #1e1b4b 0%, #312e81 60%, #4338ca 100%);
+    border-radius: 14px;
+    padding: 36px 40px;
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+.shop-hero h1 { font-size: 24px; font-weight: 600; color: #fff; margin-bottom: 6px; }
+.shop-hero p { font-size: 14px; color: #a5b4fc; margin: 0; }
+.shop-hero-icon { font-size: 48px; color: #6366f1; opacity: .5; }
 
-            <div class="col-lg-9 order-1 order-lg-2">
+.loc-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px 28px;
+    margin-bottom: 28px;
+    box-shadow: var(--shadow);
+}
+.loc-label { font-size: 12px; font-weight: 600; color: var(--text-2); letter-spacing: .06em; text-transform: uppercase; margin-bottom: 10px; }
+.loc-select-wrap { display: flex; gap: 12px; align-items: center; }
+.loc-select {
+    flex: 1;
+    max-width: 420px;
+    height: 42px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 0 14px;
+    font-size: 14px;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text);
+    background: var(--bg);
+    outline: none;
+    cursor: pointer;
+    transition: border-color .15s;
+}
+.loc-select:focus { border-color: var(--accent); background: #fff; }
+.loc-hint { font-size: 12px; color: var(--text-2); margin-top: 8px; display: flex; align-items: center; gap: 6px; }
 
-                <div class="product-show-option">
-                    <div class="row">
+/* Agents grid */
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+.section-title { font-size: 16px; font-weight: 600; color: var(--text); }
+.result-count { font-size: 13px; color: var(--text-2); background: var(--bg); border: 1px solid var(--border); border-radius: 20px; padding: 3px 12px; }
 
-                        <div class="col-lg-7 col-md-7">
+.agent-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 18px; }
 
-                            <form method="POST">
-                                {% csrf_token %}
-                                <div class="select-option d-flex">
+.agent-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    transition: transform .2s, box-shadow .2s;
+    text-decoration: none;
+    display: block;
+    cursor: pointer;
+}
+.agent-card:hover { transform: translateY(-4px); box-shadow: 0 12px 28px rgba(0,0,0,.1); }
 
-                                    <select class="sorting form-control" name="location_id">
-                                        <option value="">Select a location</option>
+.agent-pic {
+    height: 160px;
+    background: #f1f5f9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+}
+.agent-pic img { width: 100%; height: 100%; object-fit: cover; }
+.agent-pic .agent-initials {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    background: var(--accent-light);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px; font-weight: 600; color: var(--accent);
+}
+.agent-pic .loc-badge {
+    position: absolute; top: 10px; right: 10px;
+    background: rgba(255,255,255,.92);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 11px; font-weight: 500; color: var(--text);
+}
 
-                                        {% for location in list %}
-                                            <option value="{{ location.id }}">
-                                                {{ location.location }}
-                                            </option>
-                                        {% endfor %}
+.agent-body { padding: 16px 18px; }
+.agent-role { font-size: 11px; font-weight: 600; color: var(--accent); letter-spacing: .06em; text-transform: uppercase; margin-bottom: 4px; }
+.agent-name { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 10px; }
+.agent-meta { display: flex; flex-direction: column; gap: 5px; }
+.agent-meta-row { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--text-2); }
+.agent-meta-row i { width: 14px; text-align: center; font-size: 12px; color: #94a3b8; }
+.agent-cta {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-top: 14px; padding-top: 12px;
+    border-top: 1px solid var(--border);
+    font-size: 12.5px; color: var(--accent); font-weight: 500;
+}
 
-                                    </select>
+/* Empty state */
+.empty-state { text-align: center; padding: 60px 20px; color: var(--text-2); }
+.empty-icon { width: 64px; height: 64px; border-radius: 50%; background: var(--bg); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 24px; color: #94a3b8; }
+.empty-state h4 { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+.empty-state p { font-size: 13px; }
 
-                                    <button type="submit" class="btn btn-primary ml-2">
-                                        Search
-                                    </button>
+/* Skeleton loader */
+.skeleton { background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%); background-size: 200% 100%; animation: shimmer 1.2s infinite; border-radius: 8px; }
+@keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+.skel-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+.skel-pic { height: 160px; }
+.skel-body { padding: 16px 18px; }
+.skel-line { height: 12px; margin-bottom: 10px; }
+.skel-line.w60 { width: 60%; }
+.skel-line.w80 { width: 80%; }
+.skel-line.w40 { width: 40%; }
+</style>
 
-                                </div>
-                            </form>
-
-                        </div>
-
-                    </div>
-                </div>
-
-                <!-- Product List -->
-                <div class="product-list">
-                    <div class="row">
-
-                        {% for a in agent %}
-                        <div class="col-lg-4 col-sm-6">
-                            <div class="product-item">
-
-                                <div class="pi-pic">
-
-                                    <a href="{% url 'customer_agent_products' a.id %}">
-                                        {% if a.photo %}
-                                            <img src="{{ a.photo.url }}" alt="">
-                                        {% else %}
-                                            <img src="{% static 'img/products/product-1.jpg' %}" alt="">
-                                        {% endif %}
-                                    </a>
-
-                                </div>
-
-                                <div class="pi-text">
-
-                                    <div class="catagory-name">Agent</div>
-
-                                    <h5>{{ a.name }}</h5>
-
-                                    <p>{{ a.phone }}</p>
-
-                                </div>
-
-                            </div>
-                        </div>
-                        {% empty %}
-
-                        <div class="col-12">
-                            <p>No agents found for this location.</p>
-                        </div>
-
-                        {% endfor %}
-
-                    </div>
-                </div>
-                <!-- End Product List -->
-
-            </div>
-
-        </div>
+<!-- Hero -->
+<div class="shop-hero">
+    <div>
+        <h1>Find your delivery agent</h1>
+        <p>Select your location to see agents serving your area and their available publications.</p>
     </div>
-</section>
+    <div class="shop-hero-icon"><i class="fa fa-map-location-dot"></i></div>
+</div>
+
+<!-- Location selector -->
+<div class="loc-card">
+    <div class="loc-label">Your delivery location</div>
+    <form id="loc-form" method="POST">
+        {% csrf_token %}
+        <div class="loc-select-wrap">
+            <select id="loc-select" class="loc-select" name="location_id">
+                <option value="">— Select a location —</option>
+                {% for location in list %}
+                    <option value="{{ location.id }}">{{ location.location }}</option>
+                {% endfor %}
+            </select>
+            <span id="loc-loading" style="display:none;font-size:13px;color:var(--text-2);">
+                <i class="fa fa-circle-notch fa-spin"></i> Finding agents...
+            </span>
+        </div>
+        <div class="loc-hint"><i class="fa fa-info-circle"></i> Agents shown are based on your selected delivery area.</div>
+    </form>
+</div>
+
+<!-- Agents section -->
+<div id="agents-section">
+    {% if agent %}
+    <div class="section-header">
+        <div class="section-title">Agents in your area</div>
+        <span class="result-count">{{ agent|length }} agent{{ agent|length|pluralize }} found</span>
+    </div>
+    <div class="agent-grid" id="agent-grid">
+        {% for a in agent %}
+        <a href="{% url 'customer_agent_products' a.id %}" class="agent-card">
+            <div class="agent-pic">
+                {% if a.photo %}
+                    <img src="{{ a.photo.url }}" alt="{{ a.name }}">
+                {% else %}
+                    <div class="agent-initials">{{ a.name|slice:":1" }}</div>
+                {% endif %}
+                <span class="loc-badge"><i class="fa fa-location-dot" style="color:var(--accent);margin-right:4px;"></i>{{ a.location.first.location }}</span>
+            </div>
+            <div class="agent-body">
+                <div class="agent-role">Delivery Agent</div>
+                <div class="agent-name">{{ a.name }}</div>
+                <div class="agent-meta">
+                    <div class="agent-meta-row"><i class="fa fa-phone"></i>{{ a.phone }}</div>
+                    <div class="agent-meta-row"><i class="fa fa-map-pin"></i>{{ a.location.first.location }}</div>
+                </div>
+                <div class="agent-cta">View publications <i class="fa fa-arrow-right"></i></div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state" id="empty-default">
+        <div class="empty-icon"><i class="fa fa-map-location-dot"></i></div>
+        <h4>Select a location to get started</h4>
+        <p>Choose your delivery area above to see agents and available publications.</p>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const sel = document.getElementById('loc-select');
+    const form = document.getElementById('loc-form');
+    const loading = document.getElementById('loc-loading');
+    const section = document.getElementById('agents-section');
+
+    if (!sel) return;
+
+    sel.addEventListener('change', async function () {
+        const locId = this.value;
+        if (!locId) return;
+
+        loading.style.display = 'inline-flex';
+        section.innerHTML = skeletons(6);
+
+        const fd = new FormData(form);
+        try {
+            const resp = await fetch(window.location.href, {
+                method: 'POST',
+                body: fd,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            const data = await resp.json();
+
+            if (!data.agents || data.agents.length === 0) {
+                section.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon"><i class="fa fa-person-biking"></i></div>
+                        <h4>No agents found</h4>
+                        <p>There are no agents serving this location yet. Try a different area.</p>
+                    </div>`;
+            } else {
+                let header = `
+                    <div class="section-header">
+                        <div class="section-title">Agents in your area</div>
+                        <span class="result-count">${data.agents.length} agent${data.agents.length !== 1 ? 's' : ''} found</span>
+                    </div>
+                    <div class="agent-grid">`;
+
+                data.agents.forEach(a => {
+                    const initials = a.name ? a.name.charAt(0).toUpperCase() : '?';
+                    const pic = a.photo
+                        ? `<img src="${a.photo}" alt="${a.name}">`
+                        : `<div class="agent-initials">${initials}</div>`;
+                    header += `
+                        <a href="/customer/agent/${a.id}/" class="agent-card">
+                            <div class="agent-pic">
+                                ${pic}
+                                <span class="loc-badge"><i class="fa fa-location-dot" style="color:var(--accent);margin-right:4px;"></i>${a.location}</span>
+                            </div>
+                            <div class="agent-body">
+                                <div class="agent-role">Delivery Agent</div>
+                                <div class="agent-name">${a.name}</div>
+                                <div class="agent-meta">
+                                    <div class="agent-meta-row"><i class="fa fa-phone"></i>${a.phone}</div>
+                                    <div class="agent-meta-row"><i class="fa fa-map-pin"></i>${a.location}</div>
+                                </div>
+                                <div class="agent-cta">View publications <i class="fa fa-arrow-right"></i></div>
+                            </div>
+                        </a>`;
+                });
+                header += `</div>`;
+                section.innerHTML = header;
+            }
+        } catch (e) {
+            console.error(e);
+            section.innerHTML = `<div class="empty-state"><div class="empty-icon"><i class="fa fa-circle-exclamation"></i></div><h4>Something went wrong</h4><p>Could not load agents. Please try again.</p></div>`;
+        } finally {
+            loading.style.display = 'none';
+        }
+    });
+
+    function skeletons(n) {
+        let html = `<div class="agent-grid">`;
+        for (let i = 0; i < n; i++) {
+            html += `<div class="skel-card">
+                <div class="skel-pic skeleton"></div>
+                <div class="skel-body">
+                    <div class="skel-line skeleton w40"></div>
+                    <div class="skel-line skeleton w80"></div>
+                    <div class="skel-line skeleton w60"></div>
+                </div>
+            </div>`;
+        }
+        return html + `</div>`;
+    }
+});
+</script>
 
 {% endblock %}

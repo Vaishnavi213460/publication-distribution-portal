@@ -1,82 +1,348 @@
-{% extends 'header_footer.html' %}
+{% extends 'customerheader.html' %}
 {% load static %}
 
+{% block title %}{{ product.name }} — Publication Distribution{% endblock %}
+{% block breadcrumb %}{{ product.name }}{% endblock %}
+
 {% block content %}
+<style>
+.back-link{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--text-2);text-decoration:none;margin-bottom:22px;transition:color .15s}
+.back-link:hover{color:var(--accent)}
+.detail-grid{display:grid;grid-template-columns:340px 1fr;gap:24px;align-items:start}
+@media(max-width:900px){.detail-grid{grid-template-columns:1fr}}
 
-<section class="product-detail spad py-5">
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-6">
-                <img src="{% static 'img/products/product-1.jpg' %}" class="img-fluid" alt="{{ product.name }}">
-            </div>
-            <div class="col-lg-6">
-                <div class="detail-section">
-                    <input type="hidden" id="csrf_token" value="{{ csrf_token }}">
+.detail-img-wrap{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:var(--shadow);position:sticky;top:76px}
+.detail-img{height:250px;display:flex;align-items:center;justify-content:center;background:#f8fafc;overflow:hidden}
+.detail-img img{width:100%;height:100%;object-fit:cover}
+.detail-img-meta{padding:14px 18px}
+.tag-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.tag{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:500}
+.tag-purple{background:#EEF2FF;color:#4338CA}
+.tag-teal{background:#CCFBF1;color:#0F766E}
+.tag-amber{background:#FEF3C7;color:#92400E}
+.tag-blue{background:#DBEAFE;color:#1D4ED8}
 
-                    <h2 class="mb-3">{{ product.name }}</h2>
-                    <div class="price fw-bold text-success fs-1 mb-3">₹{{ product.price }}</div>
-                    <p><strong>Type:</strong> {{ product.type }}</p>
-                    <p><strong>Management Type:</strong> {{ product.management_type }}</p>
-                    <p><strong>Price From:</strong> {{ product.price_from }}</p>
-                    <p><strong>Issue Day:</strong> {{ product.issue_day|date:"M d, Y" }}</p>
-                    <p><strong>Frequency:</strong> {{ product.frequency.all|join:", " }}</p>
-                    <div class="details mb-4">
-                        <h5>Details:</h5>
-                        <p>{{ product.details|linebreaks }}</p>
-                    </div>
-                    <div class="qty-section d-flex align-items-center mb-4">
-                        <label class="me-3 fw-bold">Quantity:</label>
-                        <button class="btn btn-outline-secondary me-2" type="button" onclick="changeQty(-1)">-</button>
-                        <input type="number" id="qty" value="1" min="1" class="form-control w-auto d-inline mx-2" style="width: 80px;">
-                        <button class="btn btn-outline-secondary" type="button" onclick="changeQty(1)">+</button>
-                    </div>
-                    <button class="btn btn-success btn-lg px-4" onclick="addToCart()">Add to Cart</button>
+.detail-info{display:flex;flex-direction:column;gap:16px}
+.info-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px 22px;box-shadow:var(--shadow)}
+.ic-title{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--text-2);margin-bottom:14px;display:flex;align-items:center;gap:7px}
+.ic-title i{color:var(--accent)}
+.prod-name-big{font-size:22px;font-weight:600;color:var(--text);line-height:1.3;margin-bottom:4px}
+.prod-sub-line{font-size:13px;color:var(--text-2);margin-bottom:12px}
+.price-display{display:flex;align-items:baseline;gap:6px}
+.price-main{font-size:28px;font-weight:600;color:var(--text);font-family:'DM Mono',monospace}
+.price-lbl{font-size:13px;color:var(--text-2)}
+.price-bkd{font-size:12px;color:var(--text-2);margin-top:4px;min-height:18px}
 
-                    <input type="hidden" id="csrf_token" value="{{ csrf_token }}">
+.meta-tbl{width:100%;border-collapse:collapse}
+.meta-tbl tr{border-bottom:1px solid var(--border)}
+.meta-tbl tr:last-child{border-bottom:none}
+.meta-tbl td{padding:8px 0;font-size:13px;vertical-align:top}
+.meta-tbl td:first-child{width:145px;color:var(--text-2);font-weight:500}
 
-                    <a href="{% url 'customer_agent_products' agent_id=agent_id %}" 
-                      class="btn btn-secondary btn-lg ms-2">
-                      Back to Products
-                    </a>
-                </div>
+/* Frequency radios */
+.freq-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:18px}
+.freq-opt{position:relative}
+.freq-opt input{position:absolute;opacity:0;width:0;height:0}
+.freq-lbl{display:flex;flex-direction:column;align-items:center;padding:12px 8px;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;transition:all .15s;text-align:center;gap:3px;background:var(--bg)}
+.freq-lbl:hover{border-color:#a5b4fc;background:#f5f3ff}
+.freq-opt input:checked + .freq-lbl{border-color:var(--accent);background:var(--accent-light)}
+.freq-opt input:checked + .freq-lbl .freq-name{color:var(--accent)}
+.freq-opt input:checked + .freq-lbl .freq-amt{color:var(--accent)}
+.freq-opt input:checked + .freq-lbl .freq-tag{display:inline-block}
+.freq-name{font-size:13px;font-weight:600;color:var(--text)}
+.freq-amt{font-size:12px;color:var(--text-2);font-family:'DM Mono',monospace}
+.freq-tag{font-size:10px;font-weight:600;background:#DCFCE7;color:#166534;padding:2px 7px;border-radius:20px;display:none}
+
+.no-freq-notice{padding:14px;background:#FEF3C7;border:1px solid #FCD34D;border-radius:10px;font-size:13px;color:#92400E;margin-bottom:18px;display:flex;align-items:center;gap:8px}
+
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+@media(max-width:600px){.form-row{grid-template-columns:1fr}}
+.fgroup{display:flex;flex-direction:column;gap:5px}
+.flabel{font-size:12px;font-weight:500;color:var(--text-2)}
+.finput{height:38px;border:1.5px solid var(--border);border-radius:8px;padding:0 12px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--text);background:#fff;outline:none;width:100%;transition:border-color .15s}
+.finput:focus{border-color:var(--accent)}
+.qty-ctrl{display:flex;align-items:center;border:1.5px solid var(--border);border-radius:8px;overflow:hidden;height:38px}
+.qty-btn{width:36px;height:100%;background:var(--bg);border:none;cursor:pointer;font-size:16px;color:var(--text);display:flex;align-items:center;justify-content:center;transition:background .12s;flex-shrink:0}
+.qty-btn:hover{background:#e2e8f0}
+.qty-inp{flex:1;height:100%;border:none;border-left:1.5px solid var(--border);border-right:1.5px solid var(--border);text-align:center;font-size:14px;font-family:'DM Mono',monospace;font-weight:500;color:var(--text);background:#fff;outline:none}
+
+.csum{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:16px}
+.csum-row{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;color:var(--text-2)}
+.csum-row:last-child{margin:8px 0 0;padding-top:10px;border-top:1px solid var(--border);font-size:15px;font-weight:600;color:var(--text)}
+.csum-row span:last-child{font-family:'DM Mono',monospace}
+
+.btn-cart{width:100%;height:46px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .15s,transform .1s;margin-bottom:10px}
+.btn-cart:hover{opacity:.9}.btn-cart:active{transform:scale(.98)}.btn-cart:disabled{opacity:.5;cursor:not-allowed}
+.btn-sec{width:100%;height:40px;background:var(--bg);color:var(--text-2);border:1px solid var(--border);border-radius:10px;font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;transition:background .12s}
+.btn-sec:hover{background:#e2e8f0;color:var(--text)}
+
+.toast-wrap{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px}
+.toast{background:#1e293b;color:#fff;padding:11px 16px;border-radius:10px;font-size:13px;font-weight:500;display:flex;align-items:center;gap:9px;box-shadow:0 8px 24px rgba(0,0,0,.2);animation:tin .25s ease;max-width:300px}
+.toast.success .ti{color:#4ade80}.toast.error .ti{color:#f87171}
+@keyframes tin{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+</style>
+
+{# Inject DB frequencies as JSON for JS to consume #}
+{{ frequencies_json|json_script:"freq-data" }}
+
+<a href="{% url 'customer_agent_products' agent_id=agent_id %}" class="back-link">
+    <i class="fa fa-arrow-left"></i> Back to publications
+</a>
+
+<div class="detail-grid">
+
+    <!-- Image panel -->
+    <div class="detail-img-wrap">
+        <div class="detail-img">
+            <img src="{% static 'img/products/product-1.jpg' %}" alt="{{ product.name }}">
+        </div>
+        <div class="detail-img-meta">
+            <div style="font-size:11px;color:var(--text-2);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Tags</div>
+            <div class="tag-row">
+                {% if product.type %}<span class="tag tag-purple"><i class="fa fa-tag"></i>{{ product.type }}</span>{% endif %}
+                {% if product.management_type %}<span class="tag tag-teal"><i class="fa fa-gear"></i>{{ product.management_type }}</span>{% endif %}
+                {% if product.issue_day %}<span class="tag tag-amber"><i class="fa fa-calendar"></i>{{ product.issue_day|date:"M d, Y" }}</span>{% endif %}
+                {% for freq in product.frequency.all %}<span class="tag tag-blue"><i class="fa fa-clock"></i>{{ freq }}</span>{% endfor %}
             </div>
         </div>
     </div>
-</section>
+
+    <!-- Info panel -->
+    <div class="detail-info">
+
+        <!-- Name + live price -->
+        <div class="info-card">
+            <div style="font-size:11px;font-weight:600;color:var(--accent);letter-spacing:.06em;text-transform:uppercase;margin-bottom:5px">Publication</div>
+            <div class="prod-name-big">{{ product.name }}</div>
+            <div class="prod-sub-line">{{ product.type }}{% if product.management_type %} · {{ product.management_type }}{% endif %}</div>
+            <div class="price-display">
+                <span class="price-main" id="live-price">₹{{ product.price|floatformat:0 }}</span>
+                <span class="price-lbl" id="price-lbl">/month</span>
+            </div>
+            <div class="price-bkd" id="price-bkd"></div>
+        </div>
+
+        <!-- Details table -->
+        <div class="info-card">
+            <div class="ic-title"><i class="fa fa-circle-info"></i>Publication details</div>
+            <table class="meta-tbl">
+                {% if product.type %}<tr><td>Type</td><td>{{ product.type }}</td></tr>{% endif %}
+                {% if product.management_type %}<tr><td>Management</td><td>{{ product.management_type }}</td></tr>{% endif %}
+                {% if product.issue_day %}<tr><td>Issue date</td><td>{{ product.issue_day|date:"F j, Y" }}</td></tr>{% endif %}
+                {% if product.price_from %}<tr><td>Available from</td><td>{{ product.price_from }}</td></tr>{% endif %}
+                <tr>
+                    <td>Frequencies</td>
+                    <td>{% for f in product.frequency.all %}{{ f }}{% if not forloop.last %}, {% endif %}{% empty %}—{% endfor %}</td>
+                </tr>
+                <tr><td>Monthly rate</td><td style="font-weight:600;font-family:'DM Mono',monospace;">₹{{ product.price }}</td></tr>
+            </table>
+        </div>
+
+        {% if product.details %}
+        <div class="info-card">
+            <div class="ic-title"><i class="fa fa-align-left"></i>Description</div>
+            <div style="font-size:14px;color:var(--text-2);line-height:1.7">{{ product.details|linebreaks }}</div>
+        </div>
+        {% endif %}
+
+        <!-- Subscription card -->
+        <div class="info-card" style="border-color:var(--accent);box-shadow:0 0 0 4px rgba(99,102,241,.06)">
+            <div class="ic-title"><i class="fa fa-newspaper"></i>Subscribe to this publication</div>
+
+            <div style="font-size:12px;font-weight:500;color:var(--text-2);margin-bottom:10px">Select subscription duration</div>
+
+            <!-- Frequency radio grid — built by JS from DB data -->
+            <div class="freq-grid" id="freq-grid"></div>
+            <div class="no-freq-notice" id="no-freq" style="display:none">
+                <i class="fa fa-circle-exclamation"></i>
+                No subscription frequencies configured for this product. Please contact admin.
+            </div>
+
+            <!-- Start date + copies -->
+            <div class="form-row">
+                <div class="fgroup">
+                    <label class="flabel" for="start-date">Delivery start date</label>
+                    <input type="date" id="start-date" class="finput">
+                    <span style="font-size:11px;color:var(--text-2)"><i class="fa fa-info-circle"></i> Delivery begins from this date</span>
+                </div>
+                <div class="fgroup">
+                    <label class="flabel">Copies per delivery</label>
+                    <div class="qty-ctrl">
+                        <button class="qty-btn" onclick="chgQty(-1)" type="button">−</button>
+                        <input type="number" id="qty" class="qty-inp" value="1" min="1" max="99">
+                        <button class="qty-btn" onclick="chgQty(1)" type="button">+</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Price summary -->
+            <div class="csum">
+                <div class="csum-row"><span>Monthly rate</span><span id="cs-rate">₹{{ product.price }}</span></div>
+                <div class="csum-row"><span>Duration</span><span id="cs-dur">—</span></div>
+                <div class="csum-row"><span>Copies / day</span><span id="cs-qty">1</span></div>
+                <div class="csum-row"><span>Total payable</span><span id="cs-total">—</span></div>
+            </div>
+
+            <button class="btn-cart" id="add-btn" onclick="addToCart()">
+                <i class="fa fa-bag-shopping"></i> Add to cart
+            </button>
+            <a href="{% url 'customer_agent_products' agent_id=agent_id %}" class="btn-sec">
+                <i class="fa fa-arrow-left"></i> Back to publications
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="toast-wrap" id="tw"></div>
+<input type="hidden" id="csrf" value="{{ csrf_token }}">
+<input type="hidden" id="pid" value="{{ product.id }}">
 
 <script>
-  function changeQty(delta) {
-    let el = document.getElementById('qty');
-    let qty = parseInt(el.value) + delta;
-    if (qty < 1) qty = 1;
-    el.value = qty;
-  }
+const UP = parseFloat('{{ product.price }}');
 
-  function addToCart() {
-    const productId = "{{ product.id }}";
-    const qty = parseInt(document.getElementById('qty').value);
+/* ── Read frequency data from Django's json_script output ── */
+const FREQS = JSON.parse(document.getElementById('freq-data').textContent);
+/*
+  FREQS is a list of objects like:
+  [
+    { "id": 3, "label": "Monthly",   "months": 1 },
+    { "id": 5, "label": "6 Months",  "months": 6 },
+    { "id": 7, "label": "1 Year",    "months": 12 },
+    { "id": 9, "label": "2 Years",   "months": 24 }
+  ]
+  Already sorted ascending by months from frequency_utils.py
+*/
 
-    fetch("{% url 'add_to_cart' %}", {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'X-CSRFToken': document.getElementById('csrf_token').value
-      },
-      body: `product_id=${productId}&qty=${qty}`
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.status === 'success') {
-        alert(`Added to cart! (${data.total_items} items)`);
-      } else {
-        alert(data.message || 'Error adding to cart');
-      }
-    })
-    .catch(error => {
-      console.error(error);
-      alert('Something went wrong');
+/* ── Assign badge labels to the two longest durations ── */
+const TAGS = {};
+if (FREQS.length >= 1) TAGS[FREQS[FREQS.length - 1].id] = 'Best deal';
+if (FREQS.length >= 2) TAGS[FREQS[FREQS.length - 2].id] = 'Popular';
+
+/* ── Build radio cards ── */
+const grid   = document.getElementById('freq-grid');
+const noFreq = document.getElementById('no-freq');
+
+if (FREQS.length === 0) {
+    noFreq.style.display = 'flex';
+    document.getElementById('add-btn').disabled = true;
+} else {
+    FREQS.forEach((f, idx) => {
+        const totalAmt = (UP * f.months).toFixed(0);
+        const tag      = TAGS[f.id] || '';
+        const opt      = document.createElement('div');
+        opt.className  = 'freq-opt';
+        opt.innerHTML  = `
+            <input type="radio" name="freq"
+                   id="f_${f.id}"
+                   value="${f.id}"
+                   data-months="${f.months}"
+                   data-label="${f.label}"
+                   ${idx === 0 ? 'checked' : ''}>
+            <label class="freq-lbl" for="f_${f.id}">
+                <span class="freq-name">${f.label}</span>
+                <span class="freq-amt">₹${totalAmt}</span>
+                ${tag ? `<span class="freq-tag">${tag}</span>` : ''}
+            </label>`;
+        grid.appendChild(opt);
+        opt.querySelector('input').addEventListener('change', updateUI);
     });
-  }
-</script>
+}
 
+/* ── Default start date = today ── */
+const todayStr = new Date().toISOString().split('T')[0];
+document.getElementById('start-date').value = todayStr;
+document.getElementById('start-date').min   = todayStr;
+
+/* ── Live price update ── */
+function getSelected() {
+    const r = document.querySelector('input[name=freq]:checked');
+    return r ? { id: r.value, months: parseInt(r.dataset.months), label: r.dataset.label } : null;
+}
+function getQty() { return Math.max(1, parseInt(document.getElementById('qty').value) || 1); }
+
+function updateUI() {
+    const sel = getSelected();
+    const q   = getQty();
+    if (!sel) return;
+
+    const total = UP * sel.months * q;
+    document.getElementById('live-price').textContent = '₹' + total.toFixed(0);
+    document.getElementById('price-lbl').textContent  = sel.months === 1 ? '/month' : `for ${sel.label}`;
+    document.getElementById('price-bkd').textContent  =
+        sel.months > 1
+            ? `₹${UP.toFixed(0)} × ${sel.months} months${q > 1 ? ' × ' + q + ' copies' : ''}`
+            : (q > 1 ? `₹${UP.toFixed(0)} × ${q} copies` : '');
+
+    document.getElementById('cs-rate').textContent  = '₹' + UP.toFixed(2);
+    document.getElementById('cs-dur').textContent   = sel.label;
+    document.getElementById('cs-qty').textContent   = q;
+    document.getElementById('cs-total').textContent = '₹' + total.toFixed(2);
+}
+
+document.getElementById('qty').addEventListener('input', updateUI);
+if (FREQS.length) updateUI();
+
+function chgQty(d) {
+    const el = document.getElementById('qty');
+    let v    = (parseInt(el.value) || 1) + d;
+    if (v < 1)  v = 1;
+    if (v > 99) v = 99;
+    el.value = v;
+    updateUI();
+}
+
+/* ── Toast ── */
+function toast(msg, type) {
+    const w = document.getElementById('tw');
+    const t = document.createElement('div');
+    t.className = `toast ${type}`;
+    t.innerHTML = `<i class="fa ${type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation'} ti"></i>${msg}`;
+    w.appendChild(t);
+    setTimeout(() => {
+        t.style.opacity = '0';
+        t.style.transition = 'opacity .3s';
+        setTimeout(() => t.remove(), 350);
+    }, 3500);
+}
+
+/* ── Add to cart ── */
+async function addToCart() {
+    const btn = document.getElementById('add-btn');
+    const sel = getSelected();
+    const sd  = document.getElementById('start-date').value;
+
+    if (!sel) { toast('No frequency available for this product.', 'error'); return; }
+    if (!sd)  { toast('Please select a delivery start date.', 'error'); return; }
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa fa-circle-notch fa-spin"></i> Adding...';
+
+    try {
+        const r = await fetch("{% url 'add_to_cart' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': document.getElementById('csrf').value
+            },
+            body: `product_id=${document.getElementById('pid').value}`
+                + `&qty=${getQty()}`
+                + `&frequency_id=${sel.id}`
+                + `&frequency_months=${sel.months}`
+                + `&delivery_start_date=${sd}`
+        });
+        const d = await r.json();
+        if (d.status === 'success') {
+            toast(`Added! ${d.total_items} item${d.total_items !== 1 ? 's' : ''} in cart.`, 'success');
+            if (window.refreshCart) window.refreshCart();
+        } else {
+            toast(d.message || 'Could not add to cart', 'error');
+        }
+    } catch (e) {
+        toast('Something went wrong. Try again.', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa fa-bag-shopping"></i> Add to cart';
+    }
+}
+</script>
 {% endblock %}

@@ -1,0 +1,269 @@
+{% extends 'customerheader.html' %}
+{% load static %}
+
+{% block title %}Payment — Publication Distribution{% endblock %}
+{% block breadcrumb %}Payment{% endblock %}
+
+{% block content %}
+<style>
+.pay-layout{display:grid;grid-template-columns:1fr 320px;gap:24px;align-items:start;max-width:900px;margin:0 auto}
+@media(max-width:800px){.pay-layout{grid-template-columns:1fr}}
+
+.pay-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;box-shadow:var(--shadow)}
+.pay-title{font-size:16px;font-weight:600;margin-bottom:20px;display:flex;align-items:center;gap:8px}
+.pay-title i{color:var(--accent)}
+
+/* Method tabs */
+.method-tabs{display:flex;gap:8px;margin-bottom:24px}
+.mtab{flex:1;padding:10px 8px;border:1.5px solid var(--border);border-radius:10px;background:var(--bg);cursor:pointer;text-align:center;font-size:12.5px;font-weight:500;color:var(--text-2);transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:4px}
+.mtab i{font-size:18px}
+.mtab:hover{border-color:#a5b4fc;background:#f5f3ff}
+.mtab.active{border-color:var(--accent);background:var(--accent-light);color:var(--accent)}
+
+/* Payment panels */
+.pay-panel{display:none}
+.pay-panel.active{display:block}
+
+/* Card UI */
+.card-visual{background:linear-gradient(135deg,#312e81,#4f46e5);border-radius:14px;padding:24px;margin-bottom:22px;color:#fff;position:relative;overflow:hidden;height:160px}
+.card-visual::before{content:'';position:absolute;width:200px;height:200px;background:rgba(255,255,255,.07);border-radius:50%;right:-40px;top:-60px}
+.card-visual::after{content:'';position:absolute;width:140px;height:140px;background:rgba(255,255,255,.05);border-radius:50%;left:-20px;bottom:-40px}
+.card-chip{width:36px;height:28px;background:#facc15;border-radius:5px;margin-bottom:16px}
+.card-num{font-size:16px;font-family:'DM Mono',monospace;letter-spacing:.15em;margin-bottom:14px}
+.card-meta{display:flex;justify-content:space-between;font-size:12px;opacity:.8}
+.card-form .fg{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+.card-form .fg label{font-size:12px;font-weight:500;color:var(--text-2)}
+.card-form .fg input{height:40px;border:1.5px solid var(--border);border-radius:8px;padding:0 14px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--text);background:#fff;outline:none;width:100%;transition:border-color .15s}
+.card-form .fg input:focus{border-color:var(--accent)}
+.card-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* UPI */
+.upi-box{text-align:center;padding:30px 20px}
+.upi-box .upi-icon{font-size:48px;color:var(--accent);margin-bottom:12px}
+.upi-box .upi-id{font-size:18px;font-weight:600;font-family:'DM Mono',monospace;color:var(--text);background:var(--bg);border:1px solid var(--border);padding:10px 20px;border-radius:10px;margin:10px 0;display:inline-block}
+.upi-box p{font-size:13px;color:var(--text-2)}
+.upi-input{display:flex;gap:10px;margin-top:16px}
+.upi-input input{flex:1;height:40px;border:1.5px solid var(--border);border-radius:8px;padding:0 14px;font-size:13px;color:var(--text);background:#fff;outline:none;font-family:'DM Sans',sans-serif}
+.upi-input input:focus{border-color:var(--accent)}
+.upi-input button{height:40px;padding:0 18px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif}
+
+/* Summary sidebar */
+.sum-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;box-shadow:var(--shadow);position:sticky;top:76px}
+.sum-title{font-size:14px;font-weight:600;margin-bottom:14px}
+.sum-row{display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px;color:var(--text-2)}
+.sum-row span:last-child{font-family:'DM Mono',monospace;color:var(--text)}
+.sum-div{border-top:1px solid var(--border);margin:12px 0}
+.sum-total{display:flex;justify-content:space-between;font-size:15px;font-weight:600}
+.sum-total span:last-child{font-family:'DM Mono',monospace;color:var(--accent)}
+
+/* Shipping summary */
+.ship-box{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:16px;font-size:13px}
+.ship-box strong{display:block;margin-bottom:3px}
+.ship-box span{color:var(--text-2)}
+
+/* Pay button */
+.btn-pay{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:48px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;transition:opacity .15s,transform .1s;margin-top:6px}
+.btn-pay:hover{opacity:.9}.btn-pay:active{transform:scale(.98)}.btn-pay:disabled{opacity:.5;cursor:not-allowed}
+.secure-note{display:flex;align-items:center;justify-content:center;gap:6px;font-size:12px;color:var(--text-2);margin-top:10px}
+
+/* Processing overlay */
+.processing{display:none;flex-direction:column;align-items:center;justify-content:center;padding:40px;text-align:center}
+.processing .spin{font-size:40px;color:var(--accent);animation:spin 1s linear infinite;margin-bottom:16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+
+<div class="pay-layout">
+    <!-- Payment form -->
+    <div>
+        <div class="pay-card">
+            <div class="pay-title"><i class="fa fa-lock"></i> Secure payment</div>
+
+            <!-- Method selector -->
+            <div class="method-tabs">
+                <div class="mtab active" onclick="switchMethod('card',this)">
+                    <i class="fa fa-credit-card"></i> Card
+                </div>
+                <div class="mtab" onclick="switchMethod('upi',this)">
+                    <i class="fa fa-mobile-screen"></i> UPI
+                </div>
+                <div class="mtab" onclick="switchMethod('cod',this)">
+                    <i class="fa fa-money-bill"></i> COD
+                </div>
+            </div>
+
+            <!-- Card panel -->
+            <div class="pay-panel active" id="panel-card">
+                <div class="card-visual">
+                    <div class="card-chip"></div>
+                    <div class="card-num" id="card-display">•••• •••• •••• ••••</div>
+                    <div class="card-meta">
+                        <span id="name-display">CARDHOLDER NAME</span>
+                        <span id="exp-display">MM/YY</span>
+                    </div>
+                </div>
+                <div class="card-form">
+                    <div class="fg">
+                        <label>Card number</label>
+                        <input type="text" id="card-num" placeholder="1234 5678 9012 3456" maxlength="19" oninput="formatCard(this)">
+                    </div>
+                    <div class="fg">
+                        <label>Cardholder name</label>
+                        <input type="text" id="card-name" placeholder="Name on card" oninput="document.getElementById('name-display').textContent=this.value.toUpperCase()||'CARDHOLDER NAME'">
+                    </div>
+                    <div class="card-row">
+                        <div class="fg">
+                            <label>Expiry (MM/YY)</label>
+                            <input type="text" id="card-exp" placeholder="MM/YY" maxlength="5" oninput="formatExp(this)">
+                        </div>
+                        <div class="fg">
+                            <label>CVV</label>
+                            <input type="password" id="card-cvv" placeholder="•••" maxlength="3">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- UPI panel -->
+            <div class="pay-panel" id="panel-upi">
+                <div class="upi-box">
+                    <div class="upi-icon"><i class="fa fa-mobile-screen-button"></i></div>
+                    <p>Enter your UPI ID or pay to our ID</p>
+                    <div class="upi-id">pubdistro@upi</div>
+                    <p style="font-size:12px;color:var(--text-2)">Or enter your UPI ID below</p>
+                    <div class="upi-input">
+                        <input type="text" id="upi-id" placeholder="yourname@bank">
+                        <button type="button" onclick="verifyUPI()">Verify</button>
+                    </div>
+                    <p id="upi-status" style="font-size:12px;margin-top:8px;min-height:18px;"></p>
+                </div>
+            </div>
+
+            <!-- COD panel -->
+            <div class="pay-panel" id="panel-cod">
+                <div style="text-align:center;padding:30px 20px">
+                    <div style="font-size:40px;color:#10b981;margin-bottom:12px"><i class="fa fa-money-bill-wave"></i></div>
+                    <div style="font-size:15px;font-weight:600;margin-bottom:6px">Cash on delivery</div>
+                    <p style="font-size:13px;color:var(--text-2)">Pay ₹{{ monthly_total|floatformat:0 }} monthly to your delivery agent at the time of first delivery.</p>
+                    <div style="background:#EAF3DE;border:1px solid #97C459;border-radius:10px;padding:12px 16px;margin-top:16px;font-size:13px;color:#27500A;">
+                        <i class="fa fa-circle-check" style="margin-right:6px;"></i>
+                        No upfront payment required. Agent will collect monthly.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Processing state -->
+            <div class="processing" id="processing">
+                <div class="spin"><i class="fa fa-circle-notch"></i></div>
+                <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:6px">Processing payment...</div>
+                <div style="font-size:13px;color:var(--text-2)">Please do not close this page.</div>
+            </div>
+
+            <form method="POST" action="{% url 'confirm_payment' %}" id="payment-form">
+                {% csrf_token %}
+                <button type="button" class="btn-pay" id="pay-btn" onclick="processPayment()">
+                    <i class="fa fa-lock"></i>
+                    {% if payment_type == 'monthly' %}
+                        Pay ₹{{ monthly_total|floatformat:0 }} now (first month)
+                    {% else %}
+                        Pay ₹{{ total|floatformat:0 }} now
+                    {% endif %}
+                </button>
+            </form>
+            <div class="secure-note">
+                <i class="fa fa-shield-halved"></i> 256-bit SSL encrypted · Your data is safe
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="sum-card">
+        <div class="sum-title">Order summary</div>
+
+        {% if shipping %}
+        <div class="ship-box">
+            <strong><i class="fa fa-location-dot" style="color:var(--accent);margin-right:5px;"></i>{{ shipping.name }}</strong>
+            <span>{{ shipping.shipping_address }}, {{ shipping.city }}, {{ shipping.pincode }}</span>
+        </div>
+        {% endif %}
+
+        <div class="sum-row"><span>Payment type</span>
+            <span class="badge" style="background:var(--accent-light);color:var(--accent);font-size:11px;padding:2px 8px;border-radius:20px;">
+                {% if payment_type == 'monthly' %}Monthly{% else %}One-time{% endif %}
+            </span>
+        </div>
+        <div class="sum-row"><span>Total amount</span><span>₹{{ total|floatformat:2 }}</span></div>
+        <div class="sum-row"><span>Monthly amount</span><span>₹{{ monthly_total|floatformat:2 }}</span></div>
+
+        <div class="sum-div"></div>
+
+        <div class="sum-total">
+            <span>{% if payment_type == 'monthly' %}Due now{% else %}Total payable{% endif %}</span>
+            <span>₹{% if payment_type == 'monthly' %}{{ monthly_total|floatformat:0 }}{% else %}{{ total|floatformat:0 }}{% endif %}</span>
+        </div>
+
+        <div style="margin-top:16px;font-size:12px;color:var(--text-2);background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px">
+            <i class="fa fa-info-circle" style="color:var(--accent);margin-right:4px;"></i>
+            This is a demo payment page. No real transaction will occur.
+        </div>
+    </div>
+</div>
+
+<script>
+let activeMethod = 'card';
+
+function switchMethod(method, el) {
+    activeMethod = method;
+    document.querySelectorAll('.mtab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    document.querySelectorAll('.pay-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('panel-' + method).classList.add('active');
+}
+
+function formatCard(el) {
+    let v = el.value.replace(/\D/g,'').slice(0,16);
+    el.value = v.replace(/(.{4})/g,'$1 ').trim();
+    document.getElementById('card-display').textContent =
+        (v + '................').slice(0,16).replace(/(.{4})/g,'$1 ').trim()
+        .replace(/\d/g, (c,i) => i < 12 ? '•' : c);
+}
+
+function formatExp(el) {
+    let v = el.value.replace(/\D/g,'');
+    if(v.length >= 2) v = v.slice(0,2) + '/' + v.slice(2,4);
+    el.value = v;
+    document.getElementById('exp-display').textContent = el.value || 'MM/YY';
+}
+
+function verifyUPI() {
+    const id = document.getElementById('upi-id').value.trim();
+    const st = document.getElementById('upi-status');
+    if (!id.includes('@')) { st.textContent = '✗ Invalid UPI ID'; st.style.color = '#ef4444'; return; }
+    st.textContent = '✓ UPI ID verified'; st.style.color = '#10b981';
+}
+
+function processPayment() {
+    // Basic validation for card
+    if (activeMethod === 'card') {
+        const num = document.getElementById('card-num').value.replace(/\s/g,'');
+        const exp = document.getElementById('card-exp').value;
+        const cvv = document.getElementById('card-cvv').value;
+        if (num.length < 16) { alert('Please enter a valid 16-digit card number.'); return; }
+        if (exp.length < 5) { alert('Please enter a valid expiry date.'); return; }
+        if (cvv.length < 3) { alert('Please enter a valid CVV.'); return; }
+    }
+    if (activeMethod === 'upi') {
+        const id = document.getElementById('upi-id').value.trim();
+        if (!id || !id.includes('@')) { alert('Please enter and verify your UPI ID.'); return; }
+    }
+
+    // Show processing state
+    document.getElementById('pay-btn').style.display = 'none';
+    document.getElementById('processing').style.display = 'flex';
+
+    // Simulate processing delay then submit
+    setTimeout(() => {
+        document.getElementById('payment-form').submit();
+    }, 2200);
+}
+</script>
+{% endblock %}

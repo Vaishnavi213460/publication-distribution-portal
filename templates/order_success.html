@@ -1,13 +1,82 @@
-{% extends 'header_footer.html' %}
+{% extends 'customerheader.html' %}
+{% load static %}
+
+{% block title %}Order Placed — Publication Distribution{% endblock %}
+{% block breadcrumb %}Order Confirmed{% endblock %}
+
 {% block content %}
-<div class="container py-5 text-center">
-    <div class="py-5">
-        <i class="fa fa-check-circle text-success" style="font-size:80px;"></i>
-        <h2 class="mt-4 fw-bold">Order Placed Successfully!</h2>
-        <p class="text-muted mt-2">Thank you for your order. You'll receive your items in 3–7 business days.</p>
-        <a href="{% url 'customer_shop' %}" class="btn btn-warning mt-3 px-5 fw-bold" style="background:#c59a2c;color:#fff;border:none;">
-            Continue Shopping
-        </a>
+<style>
+.success-wrap{max-width:580px;margin:0 auto;text-align:center;padding:20px 0}
+.success-icon{width:80px;height:80px;border-radius:50%;background:#DCFCE7;border:3px solid #86EFAC;display:flex;align-items:center;justify-content:center;margin:0 auto 24px;font-size:34px;color:#16a34a;animation:popIn .5s cubic-bezier(.36,.07,.19,.97)}
+@keyframes popIn{0%{transform:scale(0);opacity:0}70%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}
+.success-title{font-size:26px;font-weight:600;color:var(--text);margin-bottom:8px}
+.success-sub{font-size:14px;color:var(--text-2);line-height:1.6;margin-bottom:32px}
+
+.info-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:22px 24px;box-shadow:var(--shadow);text-align:left;margin-bottom:20px}
+.ic-title{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text-2);margin-bottom:14px;display:flex;align-items:center;gap:7px}
+.ic-title i{color:var(--accent)}
+.info-row{display:flex;align-items:flex-start;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;gap:12px}
+.info-row:last-child{border-bottom:none}
+.info-key{color:var(--text-2);min-width:140px}
+.info-val{color:var(--text);font-weight:500;text-align:right}
+
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:28px}
+.step-box{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 12px;text-align:center;box-shadow:var(--shadow)}
+.step-num{width:28px;height:28px;border-radius:50%;background:var(--accent-light);color:var(--accent);font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;margin:0 auto 8px}
+.step-label{font-size:12px;font-weight:600;color:var(--text);margin-bottom:3px}
+.step-desc{font-size:11px;color:var(--text-2)}
+
+.btn-home{display:inline-flex;align-items:center;gap:8px;padding:12px 28px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;text-decoration:none;transition:opacity .15s}
+.btn-home:hover{opacity:.9;color:#fff}
+.btn-shop{display:inline-flex;align-items:center;gap:8px;padding:12px 28px;background:var(--bg);color:var(--text-2);border:1px solid var(--border);border-radius:10px;font-size:14px;font-weight:500;text-decoration:none;margin-left:10px;transition:background .12s}
+.btn-shop:hover{background:#e2e8f0;color:var(--text)}
+</style>
+
+<div class="success-wrap">
+    <div class="success-icon"><i class="fa fa-check"></i></div>
+    <div class="success-title">Order placed successfully!</div>
+    <div class="success-sub">
+        Thank you for subscribing. Your publication delivery will begin from your selected start date.
+        You'll receive a confirmation on your registered email.
+    </div>
+
+    <!-- What happens next -->
+    <div class="steps">
+        <div class="step-box">
+            <div class="step-num">1</div>
+            <div class="step-label">Order confirmed</div>
+            <div class="step-desc">Your order is being processed</div>
+        </div>
+        <div class="step-box">
+            <div class="step-num">2</div>
+            <div class="step-label">Agent assigned</div>
+            <div class="step-desc">Your agent prepares delivery</div>
+        </div>
+        <div class="step-box">
+            <div class="step-num">3</div>
+            <div class="step-label">Delivery starts</div>
+            <div class="step-desc">Publications delivered daily</div>
+        </div>
+    </div>
+
+    <!-- Order info -->
+    <div class="info-card">
+        <div class="ic-title"><i class="fa fa-receipt"></i> Order details</div>
+        <div class="info-row"><span class="info-key">Status</span><span class="info-val" style="color:#10b981"><i class="fa fa-circle-check"></i> Payment received</span></div>
+        <div class="info-row"><span class="info-key">Order date</span><span class="info-val" id="order-date"></span></div>
+        <div class="info-row"><span class="info-key">Customer</span><span class="info-val">{{ request.user.get_full_name|default:request.user.username }}</span></div>
+        <div class="info-row"><span class="info-key">Email</span><span class="info-val">{{ request.user.email }}</span></div>
+    </div>
+
+    <div style="margin-top:8px">
+        <a href="{% url 'customer_dashboard' %}" class="btn-home"><i class="fa fa-gauge-high"></i> Go to dashboard</a>
+        <a href="{% url 'customer_shop' %}" class="btn-shop"><i class="fa fa-newspaper"></i> Browse more</a>
     </div>
 </div>
+
+<script>
+document.getElementById('order-date').textContent = new Date().toLocaleDateString('en-IN',{
+    day:'numeric', month:'long', year:'numeric'
+});
+</script>
 {% endblock %}

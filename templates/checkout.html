@@ -1,72 +1,246 @@
-{% extends 'header_footer.html' %}
+{% extends 'customerheader.html' %}
 {% load static %}
 
+{% block title %}Checkout — Publication Distribution{% endblock %}
+{% block breadcrumb %}Checkout{% endblock %}
+
 {% block content %}
-<div class="container py-5" style="max-width:900px;">
-    <h2 class="mb-4 fw-bold">Checkout</h2>
+<style>
+.co-layout{display:grid;grid-template-columns:1fr 340px;gap:24px;align-items:start}
+@media(max-width:900px){.co-layout{grid-template-columns:1fr}}
 
-    {% if not cart_items %}
-        <div class="alert alert-warning">Your cart is empty. <a href="{% url 'customer_shop' %}">Continue shopping</a></div>
-    {% else %}
-    <div class="row g-4">
+.co-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:22px 24px;box-shadow:var(--shadow);margin-bottom:20px}
+.co-card-title{font-size:15px;font-weight:600;margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.co-card-title i{color:var(--accent)}
 
-        <!-- Order Summary -->
-        <div class="col-lg-7">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title mb-3">Order Summary</h5>
-                    <table class="table table-borderless align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Product</th>
-                                <th class="text-center">Qty</th>
-                                <th class="text-end">Subtotal</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for item in cart_items %}
-                            <tr>
-                                <td>{{ item.product.name }}</td>
-                                <td class="text-center">{{ item.qty }}</td>
-                                <td class="text-end text-success fw-bold">₹{{ item.subtotal }}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                        <tfoot>
-                            <tr class="border-top">
-                                <td colspan="2" class="fw-bold fs-5">Total</td>
-                                <td class="text-end fw-bold fs-5 text-success">₹{{ total }}</td>
-                            </tr>
-                        </tfoot>
-                    </table>
+/* Saved address pills */
+.addr-pills{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.addr-pill{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;transition:all .15s;background:var(--bg)}
+.addr-pill:hover{border-color:#a5b4fc;background:#f5f3ff}
+.addr-pill.selected{border-color:var(--accent);background:var(--accent-light)}
+.addr-pill input{margin-top:3px;flex-shrink:0;accent-color:var(--accent)}
+.addr-pill-text strong{font-size:13px;color:var(--text);display:block}
+.addr-pill-text span{font-size:12px;color:var(--text-2)}
+
+/* Form grid */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-grid.full{grid-template-columns:1fr}
+@media(max-width:600px){.form-grid{grid-template-columns:1fr}}
+.fg{display:flex;flex-direction:column;gap:5px}
+.fg label{font-size:12px;font-weight:500;color:var(--text-2)}
+.fg input,.fg textarea,.fg select{border:1.5px solid var(--border);border-radius:8px;padding:0 12px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--text);background:#fff;outline:none;transition:border-color .15s;width:100%}
+.fg input,.fg select{height:38px}
+.fg textarea{height:72px;padding:8px 12px;resize:vertical}
+.fg input:focus,.fg textarea:focus,.fg select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(99,102,241,.08)}
+.fg .hint{font-size:11px;color:var(--text-2)}
+
+/* Payment type */
+.pay-opts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:6px}
+.pay-opt{position:relative}
+.pay-opt input{position:absolute;opacity:0;width:0;height:0}
+.pay-lbl{display:flex;flex-direction:column;padding:14px 12px;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;transition:all .15s;background:var(--bg)}
+.pay-lbl:hover{border-color:#a5b4fc;background:#f5f3ff}
+.pay-opt input:checked + .pay-lbl{border-color:var(--accent);background:var(--accent-light)}
+.pay-icon{font-size:18px;color:var(--accent);margin-bottom:6px}
+.pay-name{font-size:13px;font-weight:600;color:var(--text)}
+.pay-desc{font-size:11px;color:var(--text-2);margin-top:2px}
+.pay-opt input:checked + .pay-lbl .pay-name{color:var(--accent)}
+
+/* Summary sidebar */
+.sum-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:22px;box-shadow:var(--shadow);position:sticky;top:76px}
+.sum-title{font-size:15px;font-weight:600;margin-bottom:16px}
+.sum-row{display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px;color:var(--text-2);align-items:center}
+.sum-row span:last-child{font-family:'DM Mono',monospace;color:var(--text)}
+.sum-div{border-top:1px solid var(--border);margin:12px 0}
+.sum-total{display:flex;justify-content:space-between;font-size:16px;font-weight:600}
+.sum-total span:last-child{font-family:'DM Mono',monospace;color:var(--accent)}
+.sum-monthly{display:flex;justify-content:space-between;font-size:12px;color:var(--text-2);margin-top:6px;padding:8px 10px;background:var(--bg);border-radius:8px}
+.sum-monthly span:last-child{font-family:'DM Mono',monospace}
+
+.btn-place{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:46px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;transition:opacity .15s,transform .1s;margin-top:18px}
+.btn-place:hover{opacity:.9}.btn-place:active{transform:scale(.98)}
+.btn-back-cart{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:40px;background:var(--bg);color:var(--text-2);border:1px solid var(--border);border-radius:10px;font-size:13px;text-decoration:none;margin-top:10px;transition:background .12s}
+.btn-back-cart:hover{background:#e2e8f0;color:var(--text)}
+
+/* Item rows */
+.sum-item{padding:8px 0;border-bottom:1px solid var(--border)}
+.sum-item:last-child{border-bottom:none}
+.sum-item-name{font-size:13px;font-weight:500;color:var(--text)}
+.sum-item-meta{font-size:11px;color:var(--text-2);margin-top:2px}
+.sum-item-price{font-size:13px;font-weight:600;color:var(--text);font-family:'DM Mono',monospace}
+
+/* Section divider with toggle */
+.new-addr-toggle{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--accent);cursor:pointer;font-weight:500;margin-bottom:14px;background:none;border:none;padding:0}
+.new-addr-toggle:hover{opacity:.8}
+.new-addr-form{display:none}
+.new-addr-form.open{display:block}
+
+/* Save address checkbox */
+.check-row{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-2);margin-top:12px;cursor:pointer}
+.check-row input{accent-color:var(--accent)}
+</style>
+
+{% if not cart_items %}
+<div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:40px;text-align:center;box-shadow:var(--shadow)">
+    <div style="font-size:32px;color:#94a3b8;margin-bottom:12px"><i class="fa fa-bag-shopping"></i></div>
+    <div style="font-size:16px;font-weight:600;margin-bottom:6px">Your cart is empty</div>
+    <a href="{% url 'customer_shop' %}" style="color:var(--accent);font-size:13px;text-decoration:none">Browse publications →</a>
+</div>
+{% else %}
+
+<form method="POST" action="{% url 'checkout' %}">
+{% csrf_token %}
+
+<div class="co-layout">
+    <!-- LEFT: Shipping + Payment -->
+    <div>
+
+        <!-- Delivery address -->
+        <div class="co-card">
+            <div class="co-card-title"><i class="fa fa-location-dot"></i> Delivery address</div>
+
+            {% if saved_addresses %}
+            <div class="addr-pills">
+                {% for addr in saved_addresses %}
+                <label class="addr-pill {% if forloop.first %}selected{% endif %}">
+                    <input type="radio" name="use_saved_address" value="{{ addr.id }}" {% if forloop.first %}checked{% endif %} onchange="toggleNewAddr(false)">
+                    <div class="addr-pill-text">
+                        <strong>{{ addr.name }} — {{ addr.city }}, {{ addr.pincode }}</strong>
+                        <span>{{ addr.shipping_address }}{% if addr.landmark %}, {{ addr.landmark }}{% endif %}</span>
+                        <span>{{ addr.phone }}</span>
+                    </div>
+                </label>
+                {% endfor %}
+            </div>
+            <button type="button" class="new-addr-toggle" onclick="toggleNewAddr(true)">
+                <i class="fa fa-plus"></i> Use a different address
+            </button>
+            {% endif %}
+
+            <div class="new-addr-form {% if not saved_addresses %}open{% endif %}" id="new-addr">
+                {% if saved_addresses %}
+                <input type="hidden" name="use_saved_address" value="" id="clear-saved">
+                {% endif %}
+                <div class="form-grid" style="margin-bottom:12px">
+                    <div class="fg"><label>Full name *</label><input type="text" name="name" placeholder="Your name" value="{{ request.user.get_full_name }}"></div>
+                    <div class="fg"><label>Phone *</label><input type="tel" name="phone" placeholder="Mobile number"></div>
+                    <div class="fg"><label>Email</label><input type="email" name="email" placeholder="Email address" value="{{ request.user.email }}"></div>
+                    <div class="fg"><label>Pincode *</label><input type="text" name="pincode" placeholder="6-digit pincode" maxlength="6"></div>
                 </div>
+                <div class="fg" style="margin-bottom:12px"><label>Street address *</label><textarea name="shipping_address" placeholder="House no, street, area..."></textarea></div>
+                <div class="form-grid" style="margin-bottom:12px">
+                    <div class="fg"><label>Landmark</label><input type="text" name="landmark" placeholder="Near..."></div>
+                    <div class="fg"><label>City *</label><input type="text" name="city" placeholder="City"></div>
+                    <div class="fg"><label>District</label><input type="text" name="district" placeholder="District"></div>
+                    <div class="fg">
+                        <label>State *</label>
+                        <select name="state">
+                            <option value="Kerala" selected>Kerala</option>
+                            <option value="Tamil Nadu">Tamil Nadu</option>
+                            <option value="Karnataka">Karnataka</option>
+                            <option value="Andhra Pradesh">Andhra Pradesh</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+                <label class="check-row">
+                    <input type="checkbox" name="save_address"> Save this address for future orders
+                </label>
             </div>
         </div>
 
-        <!-- Place Order -->
-        <div class="col-lg-5">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title mb-3">Delivery Details</h5>
-                    <p class="text-muted mb-1"><i class="fa fa-user me-2"></i>{{ request.user.get_full_name|default:request.user.username }}</p>
-                    <p class="text-muted mb-3"><i class="fa fa-envelope me-2"></i>{{ request.user.email }}</p>
-                    <hr>
-                    <p class="text-muted small">
-                        <i class="fa fa-truck me-2"></i>
-                        Estimated delivery: <strong>3–7 business days</strong> after placing order.
-                    </p>
-                    <form method="post" action="{% url 'checkout' %}">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-warning w-100 fw-bold py-2 mt-2" style="background:#c59a2c;color:#fff;border:none;">
-                            PLACE ORDER
-                        </button>
-                    </form>
-                    <a href="{% url 'cart' %}" class="btn btn-outline-secondary w-100 mt-2">← Back to Cart</a>
+        <!-- Payment type -->
+        <div class="co-card">
+            <div class="co-card-title"><i class="fa fa-credit-card"></i> Payment option</div>
+            <div class="pay-opts">
+                <div class="pay-opt">
+                    <input type="radio" name="payment_type" id="pt-one" value="one_time" checked>
+                    <label class="pay-lbl" for="pt-one">
+                        <div class="pay-icon"><i class="fa fa-money-bill-wave"></i></div>
+                        <div class="pay-name">One-time payment</div>
+                        <div class="pay-desc">Pay full amount upfront for the selected duration</div>
+                    </label>
                 </div>
+                <div class="pay-opt">
+                    <input type="radio" name="payment_type" id="pt-monthly" value="monthly">
+                    <label class="pay-lbl" for="pt-monthly">
+                        <div class="pay-icon"><i class="fa fa-calendar-day"></i></div>
+                        <div class="pay-name">Monthly payment</div>
+                        <div class="pay-desc">Pay month-by-month for your subscription</div>
+                    </label>
+                </div>
+            </div>
+            <div style="font-size:12px;color:var(--text-2);margin-top:8px;display:flex;align-items:center;gap:5px;">
+                <i class="fa fa-info-circle" style="color:var(--accent)"></i>
+                One-time: pay ₹{{ total|floatformat:0 }} now. Monthly: pay ₹{{ monthly_total|floatformat:0 }}/month.
             </div>
         </div>
 
     </div>
-    {% endif %}
+
+    <!-- RIGHT: Order summary -->
+    <div class="sum-card">
+        <div class="sum-title">Order summary</div>
+
+        {% for item in cart_items %}
+        <div class="sum-item">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start">
+                <div style="flex:1;min-width:0;margin-right:8px">
+                    <div class="sum-item-name">{{ item.product.name }}</div>
+                    <div class="sum-item-meta">
+                        ₹{{ item.unit_price|floatformat:0 }}/mo × {{ item.frequency_months }}mo × {{ item.qty }} cop{{ item.qty|pluralize:"y,ies" }}
+                    </div>
+                    {% if item.delivery_start_date %}
+                    <div class="sum-item-meta"><i class="fa fa-calendar" style="margin-right:3px;"></i>From {{ item.delivery_start_date|date:"M j, Y" }}</div>
+                    {% endif %}
+                </div>
+                <div class="sum-item-price">₹{{ item.subtotal|floatformat:0 }}</div>
+            </div>
+        </div>
+        {% endfor %}
+
+        <div class="sum-div"></div>
+        <div class="sum-row"><span>Subtotal</span><span>₹{{ total|floatformat:2 }}</span></div>
+        <div class="sum-row"><span>Delivery</span><span style="color:#10b981">Free</span></div>
+        <div class="sum-div"></div>
+        <div class="sum-total"><span>Total</span><span>₹{{ total|floatformat:2 }}</span></div>
+        <div class="sum-monthly">
+            <span><i class="fa fa-calendar-day" style="margin-right:4px;"></i>Monthly amount</span>
+            <span>₹{{ monthly_total|floatformat:2 }}</span>
+        </div>
+
+        <button type="submit" class="btn-place">
+            <i class="fa fa-lock"></i> Proceed to payment
+        </button>
+        <a href="{% url 'cart' %}" class="btn-back-cart">
+            <i class="fa fa-arrow-left"></i> Back to cart
+        </a>
+    </div>
 </div>
+
+</form>
+{% endif %}
+
+<script>
+function toggleNewAddr(show) {
+    const form = document.getElementById('new-addr');
+    const radios = document.querySelectorAll('input[name=use_saved_address]');
+    if (show) {
+        form.classList.add('open');
+        radios.forEach(r => r.checked = false);
+        const clearInput = document.getElementById('clear-saved');
+        if (clearInput) clearInput.disabled = false;
+    } else {
+        form.classList.remove('open');
+    }
+}
+// Style selected address pill
+document.querySelectorAll('.addr-pill input').forEach(r => {
+    r.addEventListener('change', () => {
+        document.querySelectorAll('.addr-pill').forEach(p => p.classList.remove('selected'));
+        r.closest('.addr-pill').classList.add('selected');
+        toggleNewAddr(false);
+    });
+});
+</script>
 {% endblock %}

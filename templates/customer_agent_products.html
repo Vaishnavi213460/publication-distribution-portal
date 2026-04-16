@@ -1,59 +1,183 @@
-{% extends 'header_footer.html' %}
+{% extends 'customerheader.html' %}
 {% load static %}
 
+{% block title %}Agent Products — Publication Distribution{% endblock %}
+{% block breadcrumb %}Agent Products{% endblock %}
+
 {% block content %}
+<style>
+/* Back link */
+.back-link { display:inline-flex; align-items:center; gap:8px; font-size:13px; color:var(--text-2); text-decoration:none; margin-bottom:22px; transition:color .15s; }
+.back-link:hover { color:var(--accent); }
 
-<!-- Product Shop Section -->
-<section class="product-shop spad">
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-12">
-                <h4 class="mb-4">Agent Products</h4>
-            </div>
-            <div class="col-lg-9 order-1 order-lg-2">
+/* Agent info strip */
+.agent-strip {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 24px;
+    margin-bottom: 26px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    box-shadow: var(--shadow);
+}
+.agent-strip-av {
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    background: var(--accent-light);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; font-weight: 600; color: var(--accent);
+    flex-shrink: 0;
+}
+.agent-strip-name { font-size: 16px; font-weight: 600; color: var(--text); }
+.agent-strip-meta { font-size: 13px; color: var(--text-2); margin-top: 2px; display:flex; gap:16px; flex-wrap:wrap; }
+.agent-strip-meta span { display:flex; align-items:center; gap:6px; }
 
-                <!-- Product List -->
-                <div class="product-list">
-                    <div class="row">
+/* Product grid */
+.prod-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
 
-                        {% for p in products %}
-                        <div class="col-lg-4 col-sm-6">
-                            <div class="product-item">
+.prod-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    transition: transform .2s, box-shadow .2s;
+    display: flex;
+    flex-direction: column;
+}
+.prod-card:hover { transform: translateY(-4px); box-shadow: 0 12px 28px rgba(0,0,0,.09); }
 
-                                <div class="pi-pic">
-                                    <img src="{% static 'img/products/product-1.jpg' %}" alt="{{ p.name }}">
-                                </div>
+.prod-thumb {
+    height: 180px;
+    background: #f8fafc;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden; position: relative;
+}
+.prod-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.prod-thumb .no-img { font-size: 48px; color: #cbd5e1; }
+.prod-freq-badge {
+    position: absolute; top: 10px; left: 10px;
+    background: rgba(99,102,241,.9);
+    color: #fff; font-size: 10px; font-weight: 600;
+    padding: 3px 10px; border-radius: 20px;
+    text-transform: capitalize;
+}
+.prod-type-badge {
+    position: absolute; top: 10px; right: 10px;
+    background: rgba(255,255,255,.92);
+    border: 1px solid var(--border);
+    color: var(--text); font-size: 10px; font-weight: 500;
+    padding: 3px 10px; border-radius: 20px;
+}
 
-                                <div class="pi-text">
+.prod-body { padding: 16px 18px; flex: 1; display: flex; flex-direction: column; }
+.prod-sup { font-size: 11px; font-weight: 600; color: var(--accent); letter-spacing:.06em; text-transform:uppercase; margin-bottom: 4px; }
+.prod-name { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 8px; line-height: 1.3; }
+.prod-details-row { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+.prod-detail { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--text-2); }
+.prod-detail i { width: 14px; text-align: center; font-size: 12px; color: #94a3b8; }
 
-                                    <div class="catagory-name">{{ p.type }}</div>
+.prod-footer { margin-top: auto; display: flex; align-items: center; justify-content: space-between; padding-top: 14px; border-top: 1px solid var(--border); }
+.prod-price { font-size: 20px; font-weight: 600; color: var(--text); font-family: 'DM Mono', monospace; }
+.prod-price span { font-size: 12px; font-weight: 400; color: var(--text-2); font-family: 'DM Sans', sans-serif; }
+.btn-detail {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 16px; background: var(--accent); color: #fff;
+    border-radius: 8px; font-size: 13px; font-weight: 500;
+    text-decoration: none; transition: opacity .15s;
+    border: none; cursor: pointer;
+}
+.btn-detail:hover { opacity: .88; color: #fff; }
 
-                                    <h5>{{ p.name }}</h5>
+/* Empty */
+.empty-state { text-align:center; padding:60px 20px; color:var(--text-2); }
+.empty-icon { width:64px; height:64px; border-radius:50%; background:var(--bg); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; margin:0 auto 16px; font-size:24px; color:#94a3b8; }
+.empty-state h4 { font-size:16px; font-weight:600; color:var(--text); margin-bottom:6px; }
+</style>
 
-                                    <div class="product-price fw-bold text-success fs-5">₹{{ p.price }}</div>
+<a href="{% url 'customer_shop' %}" class="back-link">
+    <i class="fa fa-arrow-left"></i> Back to agents
+</a>
 
-                                    <a href="{% url 'product_detail' p.id agent_id %}" class="btn btn-primary">More Details</a>
-
-                                </div>
-
-                            </div>
-                        </div>
-                        {% empty %}
-
-                        <div class="col-12">
-                            <p class="text-center py-5">No products found for this agent.</p>
-                        </div>
-
-                        {% endfor %}
-
-                    </div>
-                </div>
-                <!-- End Product List -->
-
-            </div>
-
+<!-- Agent strip -->
+<div class="agent-strip">
+    <div class="agent-strip-av">
+        {% if agent %}{{ agent.name|slice:":1" }}{% else %}A{% endif %}
+    </div>
+    <div>
+        <div class="agent-strip-name">
+            {% if agent %}{{ agent.name }}{% else %}Agent{% endif %}
+        </div>
+        <div class="agent-strip-meta">
+            {% if agent %}
+            <span><i class="fa fa-phone"></i>{{ agent.phone }}</span>
+            <span><i class="fa fa-map-pin"></i>{{ agent.location.first.location }}</span>
+            {% endif %}
+            <span><i class="fa fa-box-open"></i>{{ products|length }} publication{{ products|length|pluralize }} available</span>
         </div>
     </div>
-</section>
+</div>
+
+<!-- Product header -->
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+    <div>
+        <div style="font-size:16px;font-weight:600;color:var(--text);">Available publications</div>
+        <div style="font-size:13px;color:var(--text-2);margin-top:2px;">Click a publication to see full details and add to cart.</div>
+    </div>
+    <span style="font-size:13px;color:var(--text-2);background:var(--bg);border:1px solid var(--border);border-radius:20px;padding:3px 12px;">{{ products|length }} result{{ products|length|pluralize }}</span>
+</div>
+
+{% if products %}
+<div class="prod-grid">
+    {% for product in products %}
+    <div class="prod-card">
+        <div class="prod-thumb">
+            <img src="{% static 'img/products/product-1.jpg' %}" alt="{{ product.name }}">
+            {% if product.frequency.all %}
+            <span class="prod-freq-badge">{{ product.frequency.all|join:", " }}</span>
+            {% endif %}
+            {% if product.type %}
+            <span class="prod-type-badge">{{ product.type }}</span>
+            {% endif %}
+        </div>
+        <div class="prod-body">
+            {% if product.supplier %}
+            <div class="prod-sup">{{ product.supplier }}</div>
+            {% endif %}
+            <div class="prod-name">{{ product.name }}</div>
+            <div class="prod-details-row">
+                {% if product.management_type %}
+                <div class="prod-detail"><i class="fa fa-tag"></i>{{ product.management_type }}</div>
+                {% endif %}
+                {% if product.issue_day %}
+                <div class="prod-detail"><i class="fa fa-calendar"></i>Issue day: {{ product.issue_day|date:"M d, Y" }}</div>
+                {% endif %}
+                {% if product.price_from %}
+                <div class="prod-detail"><i class="fa fa-clock"></i>Available from: {{ product.price_from }}</div>
+                {% endif %}
+            </div>
+            <div class="prod-footer">
+                <div class="prod-price">₹{{ product.price }}<span>/mo</span></div>
+                <a href="{% url 'product_detail' product.id agent_id %}" class="btn-detail">
+                    View details <i class="fa fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% else %}
+<div class="empty-state">
+    <div class="empty-icon"><i class="fa fa-newspaper"></i></div>
+    <h4>No publications available</h4>
+    <p>This agent has no products listed yet. Try another agent.</p>
+    <a href="{% url 'customer_shop' %}" class="btn-detail" style="margin-top:16px;display:inline-flex;">
+        <i class="fa fa-arrow-left"></i> Back to agents
+    </a>
+</div>
+{% endif %}
 
 {% endblock %}

@@ -1,63 +1,167 @@
-{% extends 'header_footer.html' %}
+{% extends 'customerheader.html' %}
 {% load static %}
 
-{% block content %}
+{% block title %}My Cart — Publication Distribution{% endblock %}
+{% block breadcrumb %}Shopping Cart{% endblock %}
 
-<section class="shopping-cart spad">
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-12">
-                <h2>Shopping Cart</h2>
-                {% if cart_items %}
-                <div class="row">
-                    <div class="col-lg-8">
-                        <div class="row">
-                            {% for item in cart_items %}
-                            <div class="col-12 mb-4">
-                                <div class="product-item border p-4">
-                                    <div class="row align-items-center">
-                                        <div class="col-md-2">
-                                            <img src="{% static 'img/products/product-1.jpg' %}" class="img-fluid" alt="{{ item.product.name }}">
-                                        </div>
-                                        <div class="col-md-4">
-                                            <h5>{{ item.product.name }}</h5>
-                                            <p class="text-muted">{{ item.product.type }}</p>
-                                        </div>
-                                        <div class="col-md-2 text-center">
-                                            <span class="qty">{{ item.qty }}</span>
-                                        </div>
-                                        <div class="col-md-2 text-center">
-                                            ₹{{ item.product.price }}
-                                        </div>
-                                        <div class="col-md-2 text-center fw-bold text-success">
-                                            ₹{{ item.subtotal|floatformat:2 }}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    <div class="col-lg-4">
-                        <div class="order-total">
-                            <h5>Total: ₹{{ total|floatformat:2 }}</h5>
-                            <button class="btn btn-success btn-lg w-100 mb-3">Proceed to Checkout</button>
-                            <!-- Placeholder, no checkout yet -->
-                        </div>
-                    </div>
+{% block content %}
+<style>
+.pg-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+.pg-title{font-size:20px;font-weight:600}
+.pg-sub{font-size:13px;color:var(--text-2);margin-top:2px}
+
+.cart-layout{display:grid;grid-template-columns:1fr 340px;gap:24px;align-items:start}
+@media(max-width:900px){.cart-layout{grid-template-columns:1fr}}
+
+/* Cart items */
+.cart-item{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px 20px;margin-bottom:14px;box-shadow:var(--shadow);display:flex;gap:16px;align-items:flex-start}
+.ci-img{width:64px;height:64px;border-radius:10px;overflow:hidden;flex-shrink:0;background:#f8fafc;display:flex;align-items:center;justify-content:center}
+.ci-img img{width:100%;height:100%;object-fit:cover}
+.ci-body{flex:1;min-width:0}
+.ci-name{font-size:15px;font-weight:600;color:var(--text);margin-bottom:3px}
+.ci-type{font-size:12px;color:var(--text-2);margin-bottom:10px}
+.ci-meta{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.ci-tag{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500;background:var(--bg);border:1px solid var(--border);color:var(--text-2)}
+.ci-pricing{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 14px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.cp-cell{text-align:center}
+.cp-lbl{font-size:10px;color:var(--text-2);margin-bottom:2px;text-transform:uppercase;letter-spacing:.05em}
+.cp-val{font-size:13px;font-weight:600;color:var(--text);font-family:'DM Mono',monospace}
+.cp-val.accent{color:var(--accent)}
+.ci-remove{background:none;border:none;color:#94a3b8;cursor:pointer;font-size:14px;flex-shrink:0;padding:4px;border-radius:6px;transition:color .15s,background .15s}
+.ci-remove:hover{color:#ef4444;background:#fee2e2}
+
+/* Empty cart */
+.empty-cart{text-align:center;padding:60px 20px;background:var(--card);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow)}
+.empty-icon{width:64px;height:64px;border-radius:50%;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:26px;color:#94a3b8}
+
+/* Summary sidebar */
+.summary-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:22px;box-shadow:var(--shadow);position:sticky;top:76px}
+.sc-title{font-size:15px;font-weight:600;margin-bottom:18px}
+.sc-row{display:flex;justify-content:space-between;font-size:13px;margin-bottom:10px;color:var(--text-2)}
+.sc-row span:last-child{font-family:'DM Mono',monospace;color:var(--text)}
+.sc-div{border-top:1px solid var(--border);margin:14px 0}
+.sc-total{display:flex;justify-content:space-between;font-size:16px;font-weight:600;color:var(--text)}
+.sc-total span:last-child{font-family:'DM Mono',monospace;color:var(--accent)}
+.btn-checkout{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:46px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;text-decoration:none;transition:opacity .15s,transform .1s;margin-top:16px}
+.btn-checkout:hover{opacity:.9;color:#fff}.btn-checkout:active{transform:scale(.98)}
+.btn-continue{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:40px;background:var(--bg);color:var(--text-2);border:1px solid var(--border);border-radius:10px;font-size:13px;font-weight:500;text-decoration:none;transition:background .12s;margin-top:10px}
+.btn-continue:hover{background:#e2e8f0;color:var(--text)}
+.sc-note{font-size:11px;color:var(--text-2);text-align:center;margin-top:12px;display:flex;align-items:center;justify-content:center;gap:5px}
+</style>
+
+<div class="pg-head">
+    <div>
+        <div class="pg-title">Shopping cart</div>
+        <div class="pg-sub">{{ cart_items|length }} publication{{ cart_items|length|pluralize }} in your cart</div>
+    </div>
+    <a href="{% url 'customer_shop' %}" style="font-size:13px;color:var(--accent);text-decoration:none;display:flex;align-items:center;gap:6px;">
+        <i class="fa fa-plus"></i> Add more
+    </a>
+</div>
+
+{% if cart_items %}
+<div class="cart-layout">
+    <!-- Items -->
+    <div>
+        {% for item in cart_items %}
+        <div class="cart-item" id="ci-{{ item.id }}">
+            <div class="ci-img">
+                <img src="{% static 'img/products/product-1.jpg' %}" alt="{{ item.product.name }}">
+            </div>
+            <div class="ci-body">
+                <div class="ci-name">{{ item.product.name }}</div>
+                <div class="ci-type">{{ item.product.type }}</div>
+                <div class="ci-meta">
+                    <span class="ci-tag"><i class="fa fa-clock"></i>{{ item.frequency_months }} month{{ item.frequency_months|pluralize }}</span>
+                    <span class="ci-tag"><i class="fa fa-copy"></i>{{ item.qty }} cop{{ item.qty|pluralize:"y,ies" }}</span>
+                    {% if item.delivery_start_date %}
+                    <span class="ci-tag"><i class="fa fa-calendar"></i>From {{ item.delivery_start_date|date:"M j, Y" }}</span>
+                    {% endif %}
+                    {% if item.delivery_end_date %}
+                    <span class="ci-tag"><i class="fa fa-calendar-check"></i>Until {{ item.delivery_end_date|date:"M j, Y" }}</span>
+                    {% endif %}
                 </div>
-                {% else %}
-                <div class="text-center py-5">
-                    <h4>Your cart is empty.</h4>
-                    <a href="{% url 'customer_shop' %}" class="btn btn-primary mt-3">Continue Shopping</a>
-                </div>
-                {% endif %}
-                <div class="text-center mt-4">
-                    <a href="{% url 'customer_shop' %}" class="btn btn-primary">Continue Shopping</a>
+                <div class="ci-pricing">
+                    <div class="cp-cell">
+                        <div class="cp-lbl">Monthly rate</div>
+                        <div class="cp-val">₹{{ item.unit_price|floatformat:0 }}</div>
+                    </div>
+                    <div class="cp-cell">
+                        <div class="cp-lbl">× {{ item.frequency_months }} months × {{ item.qty }} copies</div>
+                        <div class="cp-val">= {{ item.frequency_months }} × {{ item.qty }}</div>
+                    </div>
+                    <div class="cp-cell">
+                        <div class="cp-lbl">Total</div>
+                        <div class="cp-val accent">₹{{ item.subtotal|floatformat:2 }}</div>
+                    </div>
                 </div>
             </div>
+            <button class="ci-remove" onclick="removeItem('{{ item.id }}')" title="Remove">
+                <i class="fa fa-trash"></i>
+            </button>
         </div>
+        {% endfor %}
     </div>
-</section>
 
+    <!-- Order summary -->
+    <div class="summary-card">
+        <div class="sc-title">Order summary</div>
+
+        {% for item in cart_items %}
+        <div class="sc-row">
+            <span>{{ item.product.name }} ({{ item.frequency_months }}mo × {{ item.qty }})</span>
+            <span>₹{{ item.subtotal|floatformat:0 }}</span>
+        </div>
+        {% endfor %}
+
+        <div class="sc-div"></div>
+
+        <div class="sc-row">
+            <span>Subtotal</span><span>₹{{ total|floatformat:2 }}</span>
+        </div>
+        <div class="sc-row">
+            <span>Delivery</span><span style="color:#10b981">Free</span>
+        </div>
+
+        <div class="sc-div"></div>
+        <div class="sc-total"><span>Total</span><span>₹{{ total|floatformat:2 }}</span></div>
+
+        <a href="{% url 'checkout' %}" class="btn-checkout">
+            <i class="fa fa-credit-card"></i> Proceed to checkout
+        </a>
+        <a href="{% url 'customer_shop' %}" class="btn-continue">
+            <i class="fa fa-arrow-left"></i> Continue shopping
+        </a>
+        <div class="sc-note"><i class="fa fa-lock"></i> Secure checkout — your data is safe</div>
+    </div>
+</div>
+
+{% else %}
+<div class="empty-cart">
+    <div class="empty-icon"><i class="fa fa-bag-shopping"></i></div>
+    <div style="font-size:16px;font-weight:600;color:var(--text);margin-bottom:6px">Your cart is empty</div>
+    <div style="font-size:13px;color:var(--text-2);margin-bottom:20px">Add publications to get started.</div>
+    <a href="{% url 'customer_shop' %}" class="btn-checkout" style="width:auto;display:inline-flex;padding:0 24px;">
+        <i class="fa fa-newspaper"></i> Browse publications
+    </a>
+</div>
+{% endif %}
+
+<input type="hidden" id="csrf" value="{{ csrf_token }}">
+<script>
+async function removeItem(id){
+    if(!confirm('Remove this item from cart?')) return;
+    const r = await fetch("{% url 'remove_from_cart' %}", {
+        method:'POST',
+        headers:{'Content-Type':'application/x-www-form-urlencoded','X-CSRFToken':document.getElementById('csrf').value},
+        body:`item_id=${id}`
+    });
+    const d = await r.json();
+    if(d.status==='success'){
+        document.getElementById('ci-'+id)?.remove();
+        if(window.refreshCart) window.refreshCart();
+        location.reload();
+    }
+}
+</script>
 {% endblock %}
