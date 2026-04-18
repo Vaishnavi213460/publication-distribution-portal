@@ -24,6 +24,7 @@ class Product(models.Model):
     management_type = models.CharField(max_length=50)
     issue_day = models.DateField()
     details = models.TextField()
+    image = models.ImageField(upload_to='products/', blank=True, null=True)
     frequency = models.ManyToManyField(Frequency, blank=True)
 
     def __str__(self):

@@ -65,7 +65,7 @@ def product_list_create_update(request, id=None):
 
     obj = get_object_or_404(Product, id=id) if id else None
 
-    form = ProductForm(request.POST or None, instance=obj)
+    form = ProductForm(request.POST or None, request.FILES or None, instance=obj)
 
     if request.method == "POST" and form.is_valid():
         form.save()
@@ -89,7 +89,7 @@ def supplier_list_create_update(request, id=None):
 
     obj = get_object_or_404(Supplier, id=id) if id else None
 
-    form = SupplierForm(request.POST or None, instance=obj)
+    form = SupplierForm(request.POST or None, request.FILES or None, instance=obj)
 
     if request.method == "POST" and form.is_valid():
         supplier = form.save(commit=False)

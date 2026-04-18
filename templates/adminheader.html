@@ -214,37 +214,37 @@
 
         <button class="sb-link" onclick="toggleSub('sub-dist',this)">
             <div class="si"><i class="fa fa-map-marker-alt"></i></div>
-            <span class="sl">Distributors</span>
+            <span class="sl">Paper Distributors</span>
             <i class="fa fa-chevron-right sa"></i>
         </button>
         <div class="sb-sub-menu" id="sub-dist">
-<a href="{% url 'location_list' %}" class="sb-link">Add Location</a>
-            <a href="{% url 'location_list' %}" class="sb-link">View Locations</a>
-<a href="{% url 'frequency_list' %}" class="sb-link">Update Frequency Details</a>
+            <a href="{% url 'location_list' %}" class="sb-link">List / Add Locations</a>
         </div>
 
-        <button class="sb-link" onclick="toggleSub('sub-prod',this)">
+        <a href="{% url 'product_list' %}" class="sb-link">
             <div class="si"><i class="fa fa-box-open"></i></div>
-            <span class="sl">Products</span>
-            <i class="fa fa-chevron-right sa"></i>
-        </button>
-        <div class="sb-sub-menu" id="sub-prod">
-            <a href="{% url 'product_list' %}" class="sb-link">View Products</a>
-<a href="{% url 'product_list' %}" class="sb-link">Add / Update Product</a>
-            <a href="{% url 'frequency_list' %}" class="sb-link">Manage Frequencies</a>
-        </div>
+            <span class="sl">Product Details</span>
+        </a>
+        <a href="{% url 'frequency_list' %}" class="sb-link">
+            <div class="si"><i class="fa fa-calendar-alt"></i></div>
+            <span class="sl">Product Frequencies</span>
+        </a>
 
         <button class="sb-link" onclick="toggleSub('sub-agent',this)">
             <div class="si"><i class="fa fa-person-biking"></i></div>
-            <span class="sl">Agents</span>
+            <span class="sl">View and Active Agents</span>
             <i class="fa fa-chevron-right sa"></i>
         </button>
         <div class="sb-sub-menu" id="sub-agent">
-<a href="{% url 'agent_list' %}" class="sb-link">View & Active Agents</a>
-<a href="{% url 'agent_supplier_mapping' %}" class="sb-link">Map to Suppliers</a>
-            <a href="#" class="sb-link">Delivery Rounds</a>
-            <a href="#" class="sb-link">Delivery Stock</a>
-            <a href="#" class="sb-link">Agent Stock</a>
+            <a href="{% url 'agent_list' %}" class="sb-link">List and Status</a>
+        </div>
+        <button class="sb-link" onclick="toggleSub('sub-agent-supp',this)">
+            <div class="si"><i class="fa fa-sitemap"></i></div>
+            <span class="sl">Map Agents to Suppliers</span>
+            <i class="fa fa-chevron-right sa"></i>
+        </button>
+        <div class="sb-sub-menu" id="sub-agent-supp">
+            <a href="{% url 'agent_supplier_mapping' %}" class="sb-link">View and Map</a>
         </div>
 
         <a href="{% url 'supplier_list' %}" class="sb-link">
@@ -252,35 +252,15 @@
             <span class="sl">Suppliers</span>
         </a>
 
-        <button class="sb-link" onclick="toggleSub('sub-cust',this)">
+        <a href="{% url 'customer_list' %}" class="sb-link">
             <div class="si"><i class="fa fa-users"></i></div>
-            <span class="sl">Customers</span>
-            <i class="fa fa-chevron-right sa"></i>
-        </button>
-        <div class="sb-sub-menu" id="sub-cust">
-<a href="{% url 'customer_list' %}" class="sb-link">View Customers</a>
-<a href="{% url 'customer_order_list' %}" class="sb-link">Customer Orders</a>
-            <a href="#" class="sb-link">Complaints</a>
-        </div>
-
-        <div class="sb-section">Reports</div>
-
-        <button class="sb-link" onclick="toggleSub('sub-rep',this)">
-            <div class="si"><i class="fa fa-chart-bar"></i></div>
-            <span class="sl">Reports</span>
-            <i class="fa fa-chevron-right sa"></i>
-        </button>
-        <div class="sb-sub-menu" id="sub-rep">
-            <a href="#" class="sb-link">Invoices</a>
-            <a href="#" class="sb-link">Manage News</a>
-            <a href="#" class="sb-link">View Complaints</a>
-        </div>
-
-        <div class="sb-section">System</div>
-        <a href="#" class="sb-link">
-            <div class="si"><i class="fa fa-gear"></i></div>
-            <span class="sl">Settings</span>
+            <span class="sl">View Customers</span>
         </a>
+        <a href="{% url 'customer_order_list' %}" class="sb-link">
+            <div class="si"><i class="fa fa-shopping-bag"></i></div>
+            <span class="sl">View Customer Orders</span>
+        </a>
+
     </div>
 
     <div class="sb-footer">

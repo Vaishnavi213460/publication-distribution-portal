@@ -54,6 +54,7 @@
                                     <th class="fw-bold py-3">Name</th>
                                     <th class="fw-bold py-3">Price</th>
                                     <th class="fw-bold py-3">Issue Day</th>
+                                    <th class="fw-bold py-3 text-center">Image</th>
                                     <th class="fw-bold py-3 text-center">Action</th>
                                 </tr>
                             </thead>
@@ -69,19 +70,23 @@
                                     <td class="text-dark fw-semibold">₹{{ i.price }}</td>
                                     <td class="text-muted small">{{ i.issue_day }}</td>
                                     <td class="text-center">
+                                        {% if i.image %}
+                                        <img src="{{ i.image.url }}" alt="{{ i.name }}" class="rounded shadow-sm" style="width:50px; height:40px; object-fit:cover;">
+                                        {% else %}
+                                        <span class="text-muted small">No image</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
                                         <div class="d-flex justify-content-center gap-2">
                                             <a href="{% url 'product_edit' i.id %}" class="btn btn-sm btn-outline-primary border-1" title="Edit">
                                                 <i class="fas fa-pen"></i>
-                                            </a>
-                                            <a href="{% url 'product_delete' i.id %}" class="btn btn-sm btn-outline-danger border-1" title="Delete">
-                                                <i class="fas fa-trash"></i>
                                             </a>
                                         </div>
                                     </td>
                                 </tr>
                                 {% empty %}
                                 <tr>
-                                    <td colspan="5" class="text-center py-5 text-muted">No products found.</td>
+<td colspan="6" class="text-center py-5 text-muted">No products found.</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
