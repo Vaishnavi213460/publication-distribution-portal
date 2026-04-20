@@ -148,8 +148,8 @@
             {% endif %}
             <div class="prod-name">{{ product.name }}</div>
             <div class="prod-details-row">
-                {% if product.management_type %}
-                <div class="prod-detail"><i class="fa fa-tag"></i>{{ product.management_type }}</div>
+                {% if product.magazine_type %}
+                <div class="prod-detail"><i class="fa fa-tag"></i>{{ product.magazine_type }}</div>
                 {% endif %}
                 {% if product.issue_day %}
                 <div class="prod-detail"><i class="fa fa-calendar"></i>Issue day: {{ product.issue_day|date:"M d, Y" }}</div>

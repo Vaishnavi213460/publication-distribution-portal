@@ -100,7 +100,7 @@
             <div style="font-size:11px;color:var(--text-2);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Tags</div>
             <div class="tag-row">
                 {% if product.type %}<span class="tag tag-purple"><i class="fa fa-tag"></i>{{ product.type }}</span>{% endif %}
-                {% if product.management_type %}<span class="tag tag-teal"><i class="fa fa-gear"></i>{{ product.management_type }}</span>{% endif %}
+                {% if product.magazine_type %}<span class="tag tag-teal"><i class="fa fa-gear"></i>{{ product.magazine_type }}</span>{% endif %}
                 {% if product.issue_day %}<span class="tag tag-amber"><i class="fa fa-calendar"></i>{{ product.issue_day|date:"M d, Y" }}</span>{% endif %}
                 {% for freq in product.frequency.all %}<span class="tag tag-blue"><i class="fa fa-clock"></i>{{ freq }}</span>{% endfor %}
             </div>
@@ -114,7 +114,7 @@
         <div class="info-card">
             <div style="font-size:11px;font-weight:600;color:var(--accent);letter-spacing:.06em;text-transform:uppercase;margin-bottom:5px">Publication</div>
             <div class="prod-name-big">{{ product.name }}</div>
-            <div class="prod-sub-line">{{ product.type }}{% if product.management_type %} · {{ product.management_type }}{% endif %}</div>
+            <div class="prod-sub-line">{{ product.type }}{% if product.magazine_type %} · {{ product.magazine_type }}{% endif %}</div>
             <div class="price-display">
                 <span class="price-main" id="live-price">₹{{ product.price|floatformat:0 }}</span>
                 <span class="price-lbl" id="price-lbl">/month</span>
@@ -127,7 +127,7 @@
             <div class="ic-title"><i class="fa fa-circle-info"></i>Publication details</div>
             <table class="meta-tbl">
                 {% if product.type %}<tr><td>Type</td><td>{{ product.type }}</td></tr>{% endif %}
-                {% if product.management_type %}<tr><td>Management</td><td>{{ product.management_type }}</td></tr>{% endif %}
+                {% if product.magazine_type %}<tr><td>Magazine Type</td><td>{{ product.magazine_type }}</td></tr>{% endif %}
                 {% if product.issue_day %}<tr><td>Issue date</td><td>{{ product.issue_day|date:"F j, Y" }}</td></tr>{% endif %}
                 {% if product.price_from %}<tr><td>Available from</td><td>{{ product.price_from }}</td></tr>{% endif %}
                 <tr>

@@ -16,7 +16,7 @@ class FrequencyForm(forms.ModelForm):
 class SupplierForm(forms.ModelForm):
     class Meta:
         model = Supplier
-        fields = '__all__'
+        exclude = ['status']  
 
 class ProductForm(forms.ModelForm):
     class Meta:
@@ -27,4 +27,4 @@ class ProductForm(forms.ModelForm):
 class AgentSuppForm(forms.ModelForm):
     class Meta:
         model = AgentSupp
-        fields = '__all__'
+        exclude = ['status']  

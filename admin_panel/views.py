@@ -91,12 +91,14 @@ def supplier_list_create_update(request, id=None):
 
     form = SupplierForm(request.POST or None, request.FILES or None, instance=obj)
 
-    if request.method == "POST" and form.is_valid():
-        supplier = form.save(commit=False)
-        supplier.save()
-        form.save_m2m() 
-        
-        return redirect('supplier_list')
+    if request.method == "POST":
+        if form.is_valid():
+            supplier = form.save(commit=False)
+            supplier.save()
+            form.save_m2m()
+            return redirect('supplier_list')
+        else:
+            print(form.errors)  # 👈 ADD THIS
 
     data = Supplier.objects.all()
 

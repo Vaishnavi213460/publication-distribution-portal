@@ -13,4 +13,5 @@ urlpatterns = [
     path('deliveries/',              views.agent_delivery_list, name='agent_delivery_list'),
     path('deliveries/mark/',         views.mark_delivery,       name='mark_delivery'),
     path('deliveries/<int:item_id>/', views.agent_order_detail, name='agent_order_detail'),
+    path('agent-toggle-status/<int:id>/', views.toggle_agent_status, name='toggle_agent_status'),
 ]

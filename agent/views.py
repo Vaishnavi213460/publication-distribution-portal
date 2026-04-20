@@ -273,3 +273,14 @@ def agent_order_detail(request, item_id):
         'today_log': today_log,
         'agent': agent,
     })
+
+def toggle_agent_status(request, id):
+    agent = get_object_or_404(Agent, id=id)
+
+    if agent.status == 'Active':
+        agent.status = 'Inactive'
+    else:
+        agent.status = 'Active'
+
+    agent.save()
+    return redirect(request.META.get('HTTP_REFERER', 'agent_list'))

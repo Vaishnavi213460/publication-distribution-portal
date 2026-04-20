@@ -1,4 +1,4 @@
-{% extends 'agentbase.html' %}
+{% extends 'agentheader.html' %}
 {% load static %}
 
 {% block title %}Delivery List — Agent Portal{% endblock %}
@@ -249,9 +249,7 @@
         </div>
         {% endif %}
 
-        <!-- Actions
-             item IDs stored in data-id to avoid Django {{ }} tags inside onclick=""
-             which confuses VS Code's JS parser. JS reads data-id instead. -->
+        
         <div class="dc-actions">
             {% if row.is_active and row.today_status != 'delivered' %}
             <button class="act-btn delivered"

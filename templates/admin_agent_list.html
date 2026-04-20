@@ -35,7 +35,9 @@
                     <td>{{ agent.phone }}</td>
                     <td><span class="badge b-{% if agent.status == 'Active' %}green{% else %}gray{% endif %}">{{ agent.status }}</span></td>
                     <td>
-                        <a href="#" class="btn btn-sm btn-primary">Toggle Status</a>
+                        <a href="{% url 'toggle_agent_status' agent.id %}" class="btn btn-sm btn-primary">
+                            Toggle Status
+                        </a>
                     </td>
                 </tr>
                 {% empty %}
