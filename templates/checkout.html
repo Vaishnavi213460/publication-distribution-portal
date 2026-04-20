@@ -20,11 +20,10 @@
 .addr-pill.selected{border-color:var(--accent);background:var(--accent-light)}
 .addr-pill input{margin-top:3px;flex-shrink:0;accent-color:var(--accent)}
 .addr-pill-text strong{font-size:13px;color:var(--text);display:block}
-.addr-pill-text span{font-size:12px;color:var(--text-2)}
+.addr-pill-text span{font-size:12px;color:var(--text-2);display:block;margin-top:1px}
 
 /* Form grid */
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.form-grid.full{grid-template-columns:1fr}
 @media(max-width:600px){.form-grid{grid-template-columns:1fr}}
 .fg{display:flex;flex-direction:column;gap:5px}
 .fg label{font-size:12px;font-weight:500;color:var(--text-2)}
@@ -32,50 +31,92 @@
 .fg input,.fg select{height:38px}
 .fg textarea{height:72px;padding:8px 12px;resize:vertical}
 .fg input:focus,.fg textarea:focus,.fg select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(99,102,241,.08)}
-.fg .hint{font-size:11px;color:var(--text-2)}
 
-/* Payment type */
-.pay-opts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:6px}
+/* Payment type cards */
+.pay-opts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
 .pay-opt{position:relative}
-.pay-opt input{position:absolute;opacity:0;width:0;height:0}
-.pay-lbl{display:flex;flex-direction:column;padding:14px 12px;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;transition:all .15s;background:var(--bg)}
+.pay-opt input[type=radio]{position:absolute;opacity:0;width:0;height:0}
+.pay-lbl{
+    display:flex;flex-direction:column;
+    padding:16px 14px;
+    border:1.5px solid var(--border);
+    border-radius:12px;cursor:pointer;
+    transition:all .15s;
+    background:var(--bg);
+    height:100%;
+}
 .pay-lbl:hover{border-color:#a5b4fc;background:#f5f3ff}
-.pay-opt input:checked + .pay-lbl{border-color:var(--accent);background:var(--accent-light)}
-.pay-icon{font-size:18px;color:var(--accent);margin-bottom:6px}
-.pay-name{font-size:13px;font-weight:600;color:var(--text)}
-.pay-desc{font-size:11px;color:var(--text-2);margin-top:2px}
+.pay-opt input:checked + .pay-lbl{
+    border-color:var(--accent);
+    background:var(--accent-light);
+    box-shadow:0 0 0 3px rgba(99,102,241,.1);
+}
+.pay-icon{font-size:22px;color:var(--accent);margin-bottom:8px}
+.pay-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px}
 .pay-opt input:checked + .pay-lbl .pay-name{color:var(--accent)}
+.pay-desc{font-size:11px;color:var(--text-2);line-height:1.5}
+.pay-amount{font-size:15px;font-weight:600;font-family:'DM Mono',monospace;color:var(--text);margin-top:8px}
+.pay-opt input:checked + .pay-lbl .pay-amount{color:var(--accent)}
+.pay-freq-note{font-size:10px;color:var(--text-2);margin-top:2px}
+
+/* Payment info banner — changes dynamically */
+.pay-info-banner{
+    border-radius:10px;
+    padding:12px 14px;
+    font-size:13px;
+    display:flex;
+    align-items:flex-start;
+    gap:10px;
+    transition:background .2s,border-color .2s;
+}
+.pay-info-banner.one-time{background:#EEF2FF;border:1px solid #C7D2FE;color:#3730A3}
+.pay-info-banner.monthly{background:#F0FDF4;border:1px solid #86EFAC;color:#166534}
+.pay-info-banner i{margin-top:1px;flex-shrink:0}
 
 /* Summary sidebar */
 .sum-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:22px;box-shadow:var(--shadow);position:sticky;top:76px}
 .sum-title{font-size:15px;font-weight:600;margin-bottom:16px}
-.sum-row{display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px;color:var(--text-2);align-items:center}
-.sum-row span:last-child{font-family:'DM Mono',monospace;color:var(--text)}
+.sum-row{display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px;color:var(--text-2);align-items:flex-start;gap:8px}
+.sum-row span:last-child{font-family:'DM Mono',monospace;color:var(--text);white-space:nowrap}
 .sum-div{border-top:1px solid var(--border);margin:12px 0}
-.sum-total{display:flex;justify-content:space-between;font-size:16px;font-weight:600}
-.sum-total span:last-child{font-family:'DM Mono',monospace;color:var(--accent)}
-.sum-monthly{display:flex;justify-content:space-between;font-size:12px;color:var(--text-2);margin-top:6px;padding:8px 10px;background:var(--bg);border-radius:8px}
-.sum-monthly span:last-child{font-family:'DM Mono',monospace}
+.sum-total{display:flex;justify-content:space-between;font-size:16px;font-weight:600;align-items:center}
+.sum-total-label{color:var(--text)}
+.sum-total-amount{font-family:'DM Mono',monospace;color:var(--accent);transition:all .2s}
 
-.btn-place{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:46px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;transition:opacity .15s,transform .1s;margin-top:18px}
-.btn-place:hover{opacity:.9}.btn-place:active{transform:scale(.98)}
-.btn-back-cart{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:40px;background:var(--bg);color:var(--text-2);border:1px solid var(--border);border-radius:10px;font-size:13px;text-decoration:none;margin-top:10px;transition:background .12s}
-.btn-back-cart:hover{background:#e2e8f0;color:var(--text)}
+/* Due-now highlight box */
+.due-now-box{
+    border-radius:10px;
+    padding:12px 14px;
+    margin-top:10px;
+    transition:background .2s,border-color .2s;
+}
+.due-now-box.one-time{background:#EEF2FF;border:1px solid #C7D2FE}
+.due-now-box.monthly{background:#F0FDF4;border:1px solid #86EFAC}
+.due-now-label{font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px;transition:color .2s}
+.due-now-box.one-time .due-now-label{color:#4338CA}
+.due-now-box.monthly .due-now-label{color:#15803D}
+.due-now-amount{font-size:20px;font-weight:600;font-family:'DM Mono',monospace;transition:color .2s}
+.due-now-box.one-time .due-now-amount{color:#4338CA}
+.due-now-box.monthly .due-now-amount{color:#15803D}
+.due-now-sub{font-size:11px;color:var(--text-2);margin-top:3px}
 
 /* Item rows */
 .sum-item{padding:8px 0;border-bottom:1px solid var(--border)}
 .sum-item:last-child{border-bottom:none}
 .sum-item-name{font-size:13px;font-weight:500;color:var(--text)}
 .sum-item-meta{font-size:11px;color:var(--text-2);margin-top:2px}
-.sum-item-price{font-size:13px;font-weight:600;color:var(--text);font-family:'DM Mono',monospace}
+.sum-item-price{font-size:13px;font-weight:600;color:var(--text);font-family:'DM Mono',monospace;white-space:nowrap}
 
-/* Section divider with toggle */
+.btn-place{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:46px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;transition:opacity .15s,transform .1s;margin-top:16px}
+.btn-place:hover{opacity:.9}.btn-place:active{transform:scale(.98)}
+.btn-back-cart{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:40px;background:var(--bg);color:var(--text-2);border:1px solid var(--border);border-radius:10px;font-size:13px;text-decoration:none;margin-top:10px;transition:background .12s}
+.btn-back-cart:hover{background:#e2e8f0;color:var(--text)}
+
+/* Address toggles */
 .new-addr-toggle{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--accent);cursor:pointer;font-weight:500;margin-bottom:14px;background:none;border:none;padding:0}
 .new-addr-toggle:hover{opacity:.8}
 .new-addr-form{display:none}
 .new-addr-form.open{display:block}
-
-/* Save address checkbox */
 .check-row{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-2);margin-top:12px;cursor:pointer}
 .check-row input{accent-color:var(--accent)}
 </style>
@@ -86,13 +127,21 @@
     <div style="font-size:16px;font-weight:600;margin-bottom:6px">Your cart is empty</div>
     <a href="{% url 'customer_shop' %}" style="color:var(--accent);font-size:13px;text-decoration:none">Browse publications →</a>
 </div>
+
 {% else %}
+
+{# Pass amounts to JS safely #}
+<script>
+    const TOTAL_AMOUNT   = parseFloat("{{ total|floatformat:2 }}");
+    const MONTHLY_AMOUNT = parseFloat("{{ monthly_total|floatformat:2 }}");
+</script>
 
 <form method="POST" action="{% url 'checkout' %}">
 {% csrf_token %}
 
 <div class="co-layout">
-    <!-- LEFT: Shipping + Payment -->
+
+    <!-- ── LEFT COLUMN ── -->
     <div>
 
         <!-- Delivery address -->
@@ -103,7 +152,10 @@
             <div class="addr-pills">
                 {% for addr in saved_addresses %}
                 <label class="addr-pill {% if forloop.first %}selected{% endif %}">
-                    <input type="radio" name="use_saved_address" value="{{ addr.id }}" {% if forloop.first %}checked{% endif %} onchange="toggleNewAddr(false)">
+                    <input type="radio" name="use_saved_address"
+                           value="{{ addr.id }}"
+                           {% if forloop.first %}checked{% endif %}
+                           onchange="onSavedAddrChange(this)">
                     <div class="addr-pill-text">
                         <strong>{{ addr.name }} — {{ addr.city }}, {{ addr.pincode }}</strong>
                         <span>{{ addr.shipping_address }}{% if addr.landmark %}, {{ addr.landmark }}{% endif %}</span>
@@ -122,16 +174,40 @@
                 <input type="hidden" name="use_saved_address" value="" id="clear-saved">
                 {% endif %}
                 <div class="form-grid" style="margin-bottom:12px">
-                    <div class="fg"><label>Full name *</label><input type="text" name="name" placeholder="Your name" value="{{ request.user.get_full_name }}"></div>
-                    <div class="fg"><label>Phone *</label><input type="tel" name="phone" placeholder="Mobile number"></div>
-                    <div class="fg"><label>Email</label><input type="email" name="email" placeholder="Email address" value="{{ request.user.email }}"></div>
-                    <div class="fg"><label>Pincode *</label><input type="text" name="pincode" placeholder="6-digit pincode" maxlength="6"></div>
+                    <div class="fg">
+                        <label>Full name *</label>
+                        <input type="text" name="name" placeholder="Your name" value="{{ request.user.get_full_name }}">
+                    </div>
+                    <div class="fg">
+                        <label>Phone *</label>
+                        <input type="tel" name="phone" placeholder="Mobile number">
+                    </div>
+                    <div class="fg">
+                        <label>Email</label>
+                        <input type="email" name="email" placeholder="Email address" value="{{ request.user.email }}">
+                    </div>
+                    <div class="fg">
+                        <label>Pincode *</label>
+                        <input type="text" name="pincode" placeholder="6-digit pincode" maxlength="6">
+                    </div>
                 </div>
-                <div class="fg" style="margin-bottom:12px"><label>Street address *</label><textarea name="shipping_address" placeholder="House no, street, area..."></textarea></div>
+                <div class="fg" style="margin-bottom:12px">
+                    <label>Street address *</label>
+                    <textarea name="shipping_address" placeholder="House no, street, area..."></textarea>
+                </div>
                 <div class="form-grid" style="margin-bottom:12px">
-                    <div class="fg"><label>Landmark</label><input type="text" name="landmark" placeholder="Near..."></div>
-                    <div class="fg"><label>City *</label><input type="text" name="city" placeholder="City"></div>
-                    <div class="fg"><label>District</label><input type="text" name="district" placeholder="District"></div>
+                    <div class="fg">
+                        <label>Landmark</label>
+                        <input type="text" name="landmark" placeholder="Near...">
+                    </div>
+                    <div class="fg">
+                        <label>City *</label>
+                        <input type="text" name="city" placeholder="City">
+                    </div>
+                    <div class="fg">
+                        <label>District</label>
+                        <input type="text" name="district" placeholder="District">
+                    </div>
                     <div class="fg">
                         <label>State *</label>
                         <select name="state">
@@ -152,46 +228,66 @@
         <!-- Payment type -->
         <div class="co-card">
             <div class="co-card-title"><i class="fa fa-credit-card"></i> Payment option</div>
+
             <div class="pay-opts">
+                <!-- One-time -->
                 <div class="pay-opt">
-                    <input type="radio" name="payment_type" id="pt-one" value="one_time" checked>
+                    <input type="radio" name="payment_type" id="pt-one" value="one_time" checked
+                           onchange="onPaymentChange('one_time')">
                     <label class="pay-lbl" for="pt-one">
                         <div class="pay-icon"><i class="fa fa-money-bill-wave"></i></div>
                         <div class="pay-name">One-time payment</div>
-                        <div class="pay-desc">Pay full amount upfront for the selected duration</div>
+                        <div class="pay-desc">Pay the full amount upfront for the entire subscription period.</div>
+                        <div class="pay-amount" id="lbl-one-amount">₹{{ total|floatformat:0 }}</div>
+                        <div class="pay-freq-note">paid once</div>
                     </label>
                 </div>
+
+                <!-- Monthly -->
                 <div class="pay-opt">
-                    <input type="radio" name="payment_type" id="pt-monthly" value="monthly">
+                    <input type="radio" name="payment_type" id="pt-monthly" value="monthly"
+                           onchange="onPaymentChange('monthly')">
                     <label class="pay-lbl" for="pt-monthly">
                         <div class="pay-icon"><i class="fa fa-calendar-day"></i></div>
                         <div class="pay-name">Monthly payment</div>
-                        <div class="pay-desc">Pay month-by-month for your subscription</div>
+                        <div class="pay-desc">Pay month-by-month. First payment due now, then each month.</div>
+                        <div class="pay-amount" id="lbl-monthly-amount">₹{{ monthly_total|floatformat:0 }}</div>
+                        <div class="pay-freq-note">per month</div>
                     </label>
                 </div>
             </div>
-            <div style="font-size:12px;color:var(--text-2);margin-top:8px;display:flex;align-items:center;gap:5px;">
-                <i class="fa fa-info-circle" style="color:var(--accent)"></i>
-                One-time: pay ₹{{ total|floatformat:0 }} now. Monthly: pay ₹{{ monthly_total|floatformat:0 }}/month.
+
+            <!-- Dynamic info banner -->
+            <div class="pay-info-banner one-time" id="pay-info-banner">
+                <i class="fa fa-circle-info"></i>
+                <span id="pay-info-text">
+                    You will be charged <strong>₹{{ total|floatformat:0 }}</strong> once on the payment page.
+                    Your subscription runs for the full duration selected.
+                </span>
             </div>
         </div>
 
     </div>
 
-    <!-- RIGHT: Order summary -->
+    <!-- ── RIGHT COLUMN: Order summary ── -->
     <div class="sum-card">
         <div class="sum-title">Order summary</div>
 
         {% for item in cart_items %}
         <div class="sum-item">
-            <div style="display:flex;justify-content:space-between;align-items:flex-start">
-                <div style="flex:1;min-width:0;margin-right:8px">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+                <div style="flex:1;min-width:0">
                     <div class="sum-item-name">{{ item.product.name }}</div>
                     <div class="sum-item-meta">
-                        ₹{{ item.unit_price|floatformat:0 }}/mo × {{ item.frequency_months }}mo × {{ item.qty }} cop{{ item.qty|pluralize:"y,ies" }}
+                        ₹{{ item.unit_price|floatformat:0 }}/mo
+                        × {{ item.frequency_months }}mo
+                        × {{ item.qty }} cop{{ item.qty|pluralize:"y,ies" }}
                     </div>
                     {% if item.delivery_start_date %}
-                    <div class="sum-item-meta"><i class="fa fa-calendar" style="margin-right:3px;"></i>From {{ item.delivery_start_date|date:"M j, Y" }}</div>
+                    <div class="sum-item-meta">
+                        <i class="fa fa-calendar" style="margin-right:3px;"></i>
+                        From {{ item.delivery_start_date|date:"M j, Y" }}
+                    </div>
                     {% endif %}
                 </div>
                 <div class="sum-item-price">₹{{ item.subtotal|floatformat:0 }}</div>
@@ -200,47 +296,123 @@
         {% endfor %}
 
         <div class="sum-div"></div>
-        <div class="sum-row"><span>Subtotal</span><span>₹{{ total|floatformat:2 }}</span></div>
-        <div class="sum-row"><span>Delivery</span><span style="color:#10b981">Free</span></div>
+
+        <div class="sum-row">
+            <span>Subtotal</span>
+            <span>₹{{ total|floatformat:2 }}</span>
+        </div>
+        <div class="sum-row">
+            <span>Delivery</span>
+            <span style="color:#10b981">Free</span>
+        </div>
+
         <div class="sum-div"></div>
-        <div class="sum-total"><span>Total</span><span>₹{{ total|floatformat:2 }}</span></div>
-        <div class="sum-monthly">
-            <span><i class="fa fa-calendar-day" style="margin-right:4px;"></i>Monthly amount</span>
-            <span>₹{{ monthly_total|floatformat:2 }}</span>
+
+        <div class="sum-total">
+            <span class="sum-total-label">Total</span>
+            <span class="sum-total-amount" id="sum-total-amount">₹{{ total|floatformat:2 }}</span>
+        </div>
+
+        <!-- Dynamic due-now box -->
+        <div class="due-now-box one-time" id="due-now-box">
+            <div class="due-now-label" id="due-now-label">Due now (one-time)</div>
+            <div class="due-now-amount" id="due-now-amount">₹{{ total|floatformat:2 }}</div>
+            <div class="due-now-sub" id="due-now-sub">Full payment for entire subscription period</div>
         </div>
 
         <button type="submit" class="btn-place">
-            <i class="fa fa-lock"></i> Proceed to payment
+            <i class="fa fa-lock"></i>
+            <span id="btn-place-txt">Pay ₹{{ total|floatformat:0 }} now</span>
         </button>
         <a href="{% url 'cart' %}" class="btn-back-cart">
             <i class="fa fa-arrow-left"></i> Back to cart
         </a>
-    </div>
-</div>
 
+        <div style="display:flex;align-items:center;justify-content:center;gap:6px;font-size:11px;color:var(--text-2);margin-top:12px">
+            <i class="fa fa-shield-halved"></i> Secure 256-bit SSL encrypted checkout
+        </div>
+    </div>
+
+</div>
 </form>
 {% endif %}
 
 <script>
+function fmt(n) {
+    return '₹' + parseFloat(n).toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+function fmtRound(n) {
+    return '₹' + Math.round(parseFloat(n)).toLocaleString('en-IN');
+}
+
+function onPaymentChange(type) {
+    const banner    = document.getElementById('pay-info-banner');
+    const bannerTxt = document.getElementById('pay-info-text');
+    const dueBox    = document.getElementById('due-now-box');
+    const dueLabel  = document.getElementById('due-now-label');
+    const dueAmt    = document.getElementById('due-now-amount');
+    const dueSub    = document.getElementById('due-now-sub');
+    const btnTxt    = document.getElementById('btn-place-txt');
+    const sumTotal  = document.getElementById('sum-total-amount');
+
+    if (type === 'one_time') {
+        // Banner
+        banner.className = 'pay-info-banner one-time';
+        bannerTxt.innerHTML =
+            `You will be charged <strong>${fmtRound(TOTAL_AMOUNT)}</strong> once on the payment page. `
+            + `Your subscription runs for the full duration selected.`;
+
+        // Due-now box
+        dueBox.className    = 'due-now-box one-time';
+        dueLabel.textContent = 'Due now (one-time)';
+        dueAmt.textContent   = fmt(TOTAL_AMOUNT);
+        dueSub.textContent   = 'Full payment for the entire subscription period';
+
+        // Summary total + button
+        sumTotal.textContent = fmt(TOTAL_AMOUNT);
+        btnTxt.textContent   = `Pay ${fmtRound(TOTAL_AMOUNT)} now`;
+
+    } else {
+        // Banner
+        banner.className = 'pay-info-banner monthly';
+        bannerTxt.innerHTML =
+            `First month due now: <strong>${fmtRound(MONTHLY_AMOUNT)}</strong>. `
+            + `You will be billed <strong>${fmtRound(MONTHLY_AMOUNT)}/month</strong> for the rest of your subscription.`;
+
+        // Due-now box
+        dueBox.className    = 'due-now-box monthly';
+        dueLabel.textContent = 'Due now (first month)';
+        dueAmt.textContent   = fmt(MONTHLY_AMOUNT);
+        dueSub.textContent   = `Then ${fmtRound(MONTHLY_AMOUNT)}/month for remaining duration`;
+
+        // Summary total stays as full; button shows first-month amount
+        sumTotal.textContent = fmt(TOTAL_AMOUNT);
+        btnTxt.textContent   = `Pay ${fmtRound(MONTHLY_AMOUNT)} now (first month)`;
+    }
+}
+
+/* Address helpers */
+function onSavedAddrChange(radio) {
+    document.querySelectorAll('.addr-pill').forEach(p => p.classList.remove('selected'));
+    radio.closest('.addr-pill').classList.add('selected');
+    toggleNewAddr(false);
+}
+
 function toggleNewAddr(show) {
-    const form = document.getElementById('new-addr');
-    const radios = document.querySelectorAll('input[name=use_saved_address]');
+    const form   = document.getElementById('new-addr');
+    const radios = document.querySelectorAll('input[name=use_saved_address][type=radio]');
     if (show) {
         form.classList.add('open');
         radios.forEach(r => r.checked = false);
+        document.querySelectorAll('.addr-pill').forEach(p => p.classList.remove('selected'));
         const clearInput = document.getElementById('clear-saved');
         if (clearInput) clearInput.disabled = false;
     } else {
         form.classList.remove('open');
     }
 }
-// Style selected address pill
-document.querySelectorAll('.addr-pill input').forEach(r => {
-    r.addEventListener('change', () => {
-        document.querySelectorAll('.addr-pill').forEach(p => p.classList.remove('selected'));
-        r.closest('.addr-pill').classList.add('selected');
-        toggleNewAddr(false);
-    });
-});
+
+// Run once on load so initial state is consistent
+onPaymentChange('one_time');
 </script>
 {% endblock %}

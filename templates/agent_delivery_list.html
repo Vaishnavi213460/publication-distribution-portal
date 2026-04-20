@@ -1,0 +1,424 @@
+{% extends 'agentbase.html' %}
+{% load static %}
+
+{% block title %}Delivery List — Agent Portal{% endblock %}
+{% block breadcrumb %}Delivery List{% endblock %}
+
+{% block content %}
+<style>
+/* ── Stats bar ── */
+.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin-bottom:24px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;box-shadow:var(--shadow)}
+.stat-lbl{font-size:11px;color:var(--text-2);font-weight:500;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.stat-val{font-size:22px;font-weight:600;font-family:'DM Mono',monospace;color:var(--text)}
+.stat-val.green{color:#10b981}.stat-val.amber{color:#f59e0b}.stat-val.red{color:#ef4444}
+
+/* ── Filter bar ── */
+.filter-bar{display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.filter-tab{padding:7px 16px;border-radius:20px;border:1px solid var(--border);background:var(--bg);font-size:13px;color:var(--text-2);cursor:pointer;text-decoration:none;transition:all .15s;font-family:'DM Sans',sans-serif}
+.filter-tab:hover{border-color:#5eead4;color:var(--accent)}
+.filter-tab.active{background:var(--accent-light);border-color:var(--accent);color:var(--accent);font-weight:500}
+.search-wrap{flex:1;max-width:300px;position:relative}
+.search-wrap input{width:100%;height:36px;border:1px solid var(--border);border-radius:8px;padding:0 12px 0 32px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--text);background:#fff;outline:none}
+.search-wrap input:focus{border-color:var(--accent)}
+.search-wrap i{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:13px}
+
+/* ── Delivery card ── */
+.delivery-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px 20px;margin-bottom:14px;box-shadow:var(--shadow);transition:box-shadow .15s}
+.delivery-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.08)}
+.delivery-card.paused{border-left:4px solid #f59e0b}
+.delivery-card.delivered-today{border-left:4px solid #10b981}
+.delivery-card.missed-today{border-left:4px solid #ef4444}
+
+.dc-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+.dc-customer{font-size:15px;font-weight:600;color:var(--text)}
+.dc-product{font-size:13px;color:var(--text-2);margin-top:2px}
+
+/* Payment progress bar */
+.pay-progress{margin-bottom:14px}
+.pay-progress-label{display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px}
+.pay-progress-label .lft{color:var(--text-2)}
+.pay-progress-label .rgt{font-weight:600;font-family:'DM Mono',monospace}
+.pay-progress-label .rgt.green{color:#10b981}
+.pay-progress-label .rgt.amber{color:#f59e0b}
+.pay-bar-track{height:6px;background:var(--bg);border-radius:3px;overflow:hidden;border:1px solid var(--border)}
+.pay-bar-fill{height:100%;border-radius:3px;transition:width .4s}
+.pay-bar-fill.full{background:#10b981;width:100%}
+.pay-bar-fill.partial{background:#f59e0b;width:0}
+.pay-bar-fill.none{background:#ef4444;width:4px}
+
+/* Meta chips */
+.dc-meta{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500;background:var(--bg);border:1px solid var(--border);color:var(--text-2)}
+.chip.active{background:#CCFBF1;border-color:#5eead4;color:#0F766E}
+.chip.paused{background:#FEF3C7;border-color:#FCD34D;color:#92400E}
+.chip.delivered{background:#DCFCE7;border-color:#86EFAC;color:#166534}
+.chip.missed{background:#FEE2E2;border-color:#FCA5A5;color:#991B1B}
+
+/* Action buttons */
+.dc-actions{display:flex;gap:8px;flex-wrap:wrap}
+.act-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;font-size:12.5px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;border:none;transition:opacity .15s,transform .1s;text-decoration:none}
+.act-btn:active{transform:scale(.97)}
+.act-btn.delivered{background:#DCFCE7;color:#166534}
+.act-btn.delivered:hover{background:#bbf7d0}
+.act-btn.missed{background:#FEE2E2;color:#991B1B}
+.act-btn.missed:hover{background:#fecaca}
+.act-btn.holiday{background:#FEF3C7;color:#92400E}
+.act-btn.holiday:hover{background:#fde68a}
+.act-btn.detail{background:var(--accent-light);color:var(--accent)}
+.act-btn.detail:hover{opacity:.85}
+.act-btn:disabled{opacity:.45;cursor:not-allowed}
+
+/* Paused banner */
+.paused-banner{background:#FEF3C7;border:1px solid #FCD34D;border-radius:8px;padding:10px 14px;font-size:12.5px;color:#92400E;display:flex;align-items:center;gap:8px;margin-bottom:12px}
+
+/* Empty state */
+.empty{text-align:center;padding:60px 20px;background:var(--card);border:1px solid var(--border);border-radius:14px}
+.empty-icon{width:60px;height:60px;border-radius:50%;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:22px;color:#94a3b8}
+
+/* Toast */
+.toast-wrap{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px}
+.toast{background:#1e293b;color:#fff;padding:11px 16px;border-radius:10px;font-size:13px;display:flex;align-items:center;gap:8px;box-shadow:0 8px 24px rgba(0,0,0,.2);animation:tin .25s ease}
+.toast.s .ti{color:#4ade80}.toast.e .ti{color:#f87171}
+@keyframes tin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+.date-badge{font-size:13px;font-weight:500;color:var(--text-2);background:var(--bg);border:1px solid var(--border);padding:5px 12px;border-radius:20px;margin-left:auto}
+</style>
+
+<!-- Stats -->
+<div class="stat-row">
+    <div class="stat-card">
+        <div class="stat-lbl">Today's deliveries</div>
+        <div class="stat-val">{{ total_today }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-lbl">Completed today</div>
+        <div class="stat-val green">{{ done_today }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-lbl">Remaining</div>
+        <div class="stat-val amber">{{ total_today|add:"-"|add:done_today }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-lbl">Paused (unpaid)</div>
+        <div class="stat-val red" id="paused-count">
+            {% with items|length as cnt %}
+            {% if filter_type == 'paused' %}{{ cnt }}{% else %}—{% endif %}
+            {% endwith %}
+        </div>
+    </div>
+</div>
+
+<!-- Filter bar -->
+<form method="GET" id="search-form">
+<div class="filter-bar">
+    <a href="?filter=today" class="filter-tab {% if filter_type == 'today' %}active{% endif %}">
+        <i class="fa fa-calendar-day"></i> Today
+    </a>
+    <a href="?filter=all" class="filter-tab {% if filter_type == 'all' %}active{% endif %}">
+        <i class="fa fa-list"></i> All orders
+    </a>
+    <a href="?filter=paused" class="filter-tab {% if filter_type == 'paused' %}active{% endif %}">
+        <i class="fa fa-circle-pause"></i> Paused
+    </a>
+
+    <div class="search-wrap">
+        <i class="fa fa-search"></i>
+        <input type="text" name="q" value="{{ search }}" placeholder="Search customer or product..."
+               onchange="document.getElementById('search-form').submit()">
+        <input type="hidden" name="filter" value="{{ filter_type }}">
+    </div>
+
+    <span class="date-badge"><i class="fa fa-calendar"></i> {{ today|date:"D, M j, Y" }}</span>
+</div>
+</form>
+
+<!-- Delivery cards -->
+{% if items %}
+    {% for row in items %}
+    {% with row.item as item %}
+
+    {% if row.is_active %}
+        {% if row.today_status == 'delivered' %}
+        <div class="delivery-card delivered-today" id="card-{{ item.id }}">
+        {% elif row.today_status == 'missed' %}
+        <div class="delivery-card missed-today" id="card-{{ item.id }}">
+        {% else %}
+        <div class="delivery-card" id="card-{{ item.id }}">
+        {% endif %}
+    {% else %}
+        <div class="delivery-card paused" id="card-{{ item.id }}">
+    {% endif %}
+
+        <div class="dc-header">
+            <div>
+                <div class="dc-customer">
+                    <i class="fa fa-user" style="color:var(--accent);margin-right:6px;"></i>
+                    {{ row.customer_name }}
+                </div>
+                <div class="dc-product">{{ item.product.name }}
+                    {% if item.frequency %}· {{ item.frequency.frequency }}{% endif %}
+                    · {{ item.qty }} cop{{ item.qty|pluralize:"y,ies" }}
+                </div>
+            </div>
+            <div style="text-align:right;flex-shrink:0">
+                <div style="font-size:13px;font-weight:600;font-family:'DM Mono',monospace;color:var(--text)">
+                    ₹{{ item.product.price|floatformat:0 }}/mo
+                </div>
+                {% if item.delivery_start_date %}
+                <div style="font-size:11px;color:var(--text-2);margin-top:2px">
+                    {{ item.delivery_start_date|date:"M j" }} – {{ item.delivery_end_date|date:"M j, Y" }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Payment progress -->
+        <div class="pay-progress">
+            <div class="pay-progress-label">
+                <span class="lft">
+                    Payment:
+                    {% if item.order.payment_type == 'one_time' %}
+                        One-time (full)
+                    {% else %}
+                        Monthly — {{ row.months_paid }}/{{ row.total_months }} months paid
+                    {% endif %}
+                </span>
+                <span class="rgt {% if row.is_active %}green{% else %}amber{% endif %}">
+                    {% if item.order.payment_type == 'one_time' %}
+                        Paid in full
+                    {% else %}
+                        {{ row.months_paid }} paid
+                    {% endif %}
+                </span>
+            </div>
+            {% if item.order.payment_type == 'monthly' %}
+            <div class="pay-bar-track">
+                {% if row.months_paid == 0 %}
+                    <div class="pay-bar-fill none"></div>
+                {% elif row.months_paid == row.total_months %}
+                    <div class="pay-bar-fill full"></div>
+                {% else %}
+                    <div class="pay-bar-fill partial"
+                         data-paid="{{ row.months_paid }}"
+                         data-total="{{ row.total_months }}">
+                    </div>
+                {% endif %}
+            </div>
+            {% else %}
+            <div class="pay-bar-track">
+                <div class="pay-bar-fill full"></div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Meta chips -->
+        <div class="dc-meta">
+            {% if row.is_active %}
+                <span class="chip active"><i class="fa fa-circle-check"></i> Deliver today</span>
+            {% else %}
+                <span class="chip paused"><i class="fa fa-circle-pause"></i> Paused — payment pending</span>
+            {% endif %}
+
+            {% if row.today_status == 'delivered' %}
+                <span class="chip delivered"><i class="fa fa-check"></i> Marked delivered today</span>
+            {% elif row.today_status == 'missed' %}
+                <span class="chip missed"><i class="fa fa-xmark"></i> Missed today</span>
+            {% elif row.today_status == 'holiday' %}
+                <span class="chip holiday"><i class="fa fa-umbrella-beach"></i> Customer holiday</span>
+            {% endif %}
+
+            {% if item.delivery_start_date %}
+            <span class="chip">
+                <i class="fa fa-calendar"></i>
+                From {{ item.delivery_start_date|date:"M j, Y" }}
+            </span>
+            {% endif %}
+        </div>
+
+        {% if not row.is_active %}
+        <div class="paused-banner">
+            <i class="fa fa-triangle-exclamation"></i>
+            Delivery is <strong>paused</strong> — customer has not paid for
+            {% if item.order.payment_type == 'monthly' %}
+                this month yet ({{ row.months_paid }}/{{ row.total_months }} months paid).
+            {% else %}
+                this order.
+            {% endif %}
+            Contact customer to resolve.
+        </div>
+        {% endif %}
+
+        <!-- Actions
+             item IDs stored in data-id to avoid Django {{ }} tags inside onclick=""
+             which confuses VS Code's JS parser. JS reads data-id instead. -->
+        <div class="dc-actions">
+            {% if row.is_active and row.today_status != 'delivered' %}
+            <button class="act-btn delivered"
+                    data-id="{{ item.id }}" data-action="delivered"
+                    id="btn-del-{{ item.id }}">
+                <i class="fa fa-circle-check"></i> Mark Delivered
+            </button>
+            <button class="act-btn missed"
+                    data-id="{{ item.id }}" data-action="missed">
+                <i class="fa fa-xmark"></i> Missed
+            </button>
+            <button class="act-btn holiday"
+                    data-id="{{ item.id }}" data-action="holiday">
+                <i class="fa fa-umbrella-beach"></i> Holiday
+            </button>
+            {% elif row.today_status == 'delivered' %}
+            <button class="act-btn delivered" disabled>
+                <i class="fa fa-circle-check"></i> Delivered ✓
+            </button>
+            {% endif %}
+            <a href="{% url 'agent_order_detail' item.id %}" class="act-btn detail">
+                <i class="fa fa-eye"></i> View details
+            </a>
+        </div>
+
+    </div>
+    {% endwith %}
+    {% endfor %}
+
+{% else %}
+<div class="empty">
+    <div class="empty-icon">
+        {% if filter_type == 'paused' %}<i class="fa fa-circle-pause"></i>
+        {% elif filter_type == 'all' %}<i class="fa fa-clipboard-list"></i>
+        {% else %}<i class="fa fa-route"></i>{% endif %}
+    </div>
+    <div style="font-size:16px;font-weight:600;color:var(--text);margin-bottom:6px">
+        {% if filter_type == 'paused' %}No paused orders
+        {% elif filter_type == 'all' %}No orders found
+        {% else %}No deliveries scheduled for today{% endif %}
+    </div>
+    <div style="font-size:13px;color:var(--text-2)">
+        {% if filter_type == 'today' %}All today's customers have been served or none are scheduled.{% endif %}
+        {% if search %}Try clearing the search filter.{% endif %}
+    </div>
+</div>
+{% endif %}
+
+<div class="toast-wrap" id="tw"></div>
+<input type="hidden" id="csrf" value="{{ csrf_token }}">
+
+<script>
+/* ── Set partial bar widths from data attributes ── */
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.pay-bar-fill.partial[data-paid]').forEach(function (el) {
+        var paid  = parseInt(el.dataset.paid,  10);
+        var total = parseInt(el.dataset.total, 10);
+        if (total > 0) {
+            el.style.width = Math.round((paid / total) * 100) + '%';
+        }
+    });
+});
+
+const MARK_URL = "{% url 'mark_delivery' %}";
+
+/* ── Event delegation: one listener handles all action buttons ── */
+document.addEventListener('click', function (e) {
+    const btn = e.target.closest('.act-btn[data-id]');
+    if (!btn) return;
+    const itemId       = btn.dataset.id;
+    const deliveryStatus = btn.dataset.action;
+    if (itemId && deliveryStatus) {
+        markDelivery(itemId, deliveryStatus);
+    }
+});
+
+async function markDelivery(itemId, deliveryStatus) {
+    const csrf   = document.getElementById('csrf').value;
+    const btnDel = document.getElementById('btn-del-' + itemId);
+
+    /* Disable all buttons in this card while saving */
+    const card = document.getElementById('card-' + itemId);
+    if (card) {
+        card.querySelectorAll('.act-btn[data-id]').forEach(b => { b.disabled = true; });
+    }
+    if (btnDel) {
+        btnDel.innerHTML = '<i class="fa fa-circle-notch fa-spin"></i> Saving...';
+    }
+
+    try {
+        const r = await fetch(MARK_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': csrf,
+            },
+            body: 'item_id=' + itemId + '&delivery_status=' + deliveryStatus
+        });
+        const d = await r.json();
+
+        if (d.status === 'success') {
+            /* Update card left-border colour */
+            if (card) {
+                card.classList.remove('delivered-today', 'missed-today');
+                if (deliveryStatus === 'delivered') card.classList.add('delivered-today');
+                if (deliveryStatus === 'missed')    card.classList.add('missed-today');
+
+                /* Keep buttons disabled — action is done for today */
+                card.querySelectorAll('.act-btn[data-id]').forEach(b => { b.disabled = true; });
+
+                /* Update status chip */
+                const chipRow = card.querySelector('.dc-meta');
+                if (chipRow) {
+                    const old = chipRow.querySelector('.chip.delivered, .chip.missed, .chip.holiday');
+                    if (old) old.remove();
+                    const newChip = document.createElement('span');
+                    newChip.className = 'chip ' + deliveryStatus;
+                    if (deliveryStatus === 'delivered') {
+                        newChip.innerHTML = '<i class="fa fa-check"></i> Marked delivered today';
+                    } else if (deliveryStatus === 'missed') {
+                        newChip.innerHTML = '<i class="fa fa-xmark"></i> Missed today';
+                    } else {
+                        newChip.innerHTML = '<i class="fa fa-umbrella-beach"></i> Customer holiday';
+                    }
+                    chipRow.prepend(newChip);
+                }
+
+                /* Replace action buttons with a static "done" button */
+                const actRow = card.querySelector('.dc-actions');
+                if (actRow) {
+                    actRow.querySelectorAll('.act-btn.delivered, .act-btn.missed, .act-btn.holiday').forEach(b => b.remove());
+                    const done = document.createElement('button');
+                    done.className = 'act-btn ' + deliveryStatus;
+                    done.disabled = true;
+                    done.innerHTML = deliveryStatus === 'delivered'
+                        ? '<i class="fa fa-circle-check"></i> Delivered ✓'
+                        : deliveryStatus === 'missed'
+                            ? '<i class="fa fa-xmark"></i> Missed ✓'
+                            : '<i class="fa fa-umbrella-beach"></i> Holiday ✓';
+                    actRow.prepend(done);
+                }
+            }
+            toast('Marked as ' + deliveryStatus, 's');
+        } else {
+            toast(d.message || 'Error updating', 'e');
+            /* Re-enable on failure */
+            if (card) card.querySelectorAll('.act-btn[data-id]').forEach(b => { b.disabled = false; });
+            if (btnDel) btnDel.innerHTML = '<i class="fa fa-circle-check"></i> Mark Delivered';
+        }
+    } catch (err) {
+        toast('Something went wrong', 'e');
+        if (card) card.querySelectorAll('.act-btn[data-id]').forEach(b => { b.disabled = false; });
+        if (btnDel) btnDel.innerHTML = '<i class="fa fa-circle-check"></i> Mark Delivered';
+    }
+}
+
+function toast(msg, type) {
+    const w = document.getElementById('tw');
+    const t = document.createElement('div');
+    t.className = 'toast ' + type;
+    t.innerHTML = '<i class="fa ' + (type === 's' ? 'fa-circle-check' : 'fa-circle-exclamation') + ' ti"></i>' + msg;
+    w.appendChild(t);
+    setTimeout(function () {
+        t.style.opacity = '0';
+        t.style.transition = 'opacity .3s';
+        setTimeout(function () { t.remove(); }, 350);
+    }, 3500);
+}
+</script>
+{% endblock %}

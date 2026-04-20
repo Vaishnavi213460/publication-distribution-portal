@@ -5,10 +5,11 @@ from admin_panel.models import Location, Supplier, Product, Frequency
 from agent.models import AgentSupp
 from login.models import Agent
 from django.db.models import Sum
-from .models import CustomerOrder, OrderCart, ShippingDetails
+from .models import CustomerOrder, OrderCart, ShippingDetails, MonthlyPayment
 from .frequency_utils import frequencies_for_product, label_to_months
 from datetime import date, timedelta
 import traceback
+from dateutil.relativedelta import relativedelta   # pip install python-dateutil
 
 
 # ────────────────────────────────────────────────────────────
@@ -322,24 +323,61 @@ def payment_page(request):
     })
 
 
-# ────────────────────────────────────────────────────────────
-# Confirm payment (POST from payment page)
-# ────────────────────────────────────────────────────────────
 def confirm_payment(request):
     if not request.user.is_authenticated or request.method != 'POST':
         return redirect('login')
+
     order_id = request.session.get('pending_order_id')
     if not order_id:
         return redirect('cart')
+
     order = get_object_or_404(CustomerOrder, id=order_id, customer=request.user)
+    payment_type = request.session.get('payment_type', 'one_time')
+
+    # Save payment_type on the order
     order.status = 'payment_received'
+    order.payment_type = payment_type
     order.save()
+
+    # Update cart items status
     order.items.all().update(status='order_confirmed')
+
+    # For monthly payments: create MonthlyPayment records — first month paid, rest pending
+    if payment_type == 'monthly':
+        for item in order.items.select_related('product').all():
+            start = item.delivery_start_date or date.today()
+            for i in range(item.frequency_months):
+                month_date = date(start.year, start.month, 1)
+                # Use relativedelta if available, else manual month addition
+                try:
+                    from dateutil.relativedelta import relativedelta
+                    month_date = (start.replace(day=1) + relativedelta(months=i))
+                except ImportError:
+                    # Fallback: simple month arithmetic
+                    m = start.month - 1 + i
+                    year = start.year + m // 12
+                    month = m % 12 + 1
+                    month_date = date(year, month, 1)
+
+                MonthlyPayment.objects.get_or_create(
+                    order_item=item,
+                    month_year=month_date,
+                    defaults={
+                        'amount': item.monthly_amount(),
+                        # First month is paid (just received payment), rest are pending
+                        'status': 'paid' if i == 0 else 'pending',
+                        'paid_at': date.today() if i == 0 else None,
+                    }
+                )
+
+    # For one-time: no monthly payment records needed
+    # (is_active_this_month checks order.payment_type == 'one_time')
+
+    # Clear session
     for key in ('pending_order_id', 'shipping_id', 'payment_type', 'order_total', 'monthly_total'):
         request.session.pop(key, None)
+
     return redirect('order_success')
-
-
 # ────────────────────────────────────────────────────────────
 # Order success
 # ────────────────────────────────────────────────────────────

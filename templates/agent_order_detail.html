@@ -1,0 +1,363 @@
+{% extends 'agentbase.html' %}
+{% load static %}
+
+{% block title %}Order Detail — Agent Portal{% endblock %}
+{% block breadcrumb %}Order Detail{% endblock %}
+
+{% block content %}
+<style>
+.back-link{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--text-2);text-decoration:none;margin-bottom:22px}
+.back-link:hover{color:var(--accent)}
+
+.detail-grid{display:grid;grid-template-columns:1fr 320px;gap:20px;align-items:start}
+@media(max-width:900px){.detail-grid{grid-template-columns:1fr}}
+
+.det-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px 22px;box-shadow:var(--shadow);margin-bottom:16px}
+.det-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:16px;display:flex;align-items:center;gap:7px;text-transform:uppercase;letter-spacing:.05em}
+.det-title i{color:var(--accent)}
+
+.info-row{display:flex;align-items:flex-start;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;gap:8px}
+.info-row:last-child{border-bottom:none}
+.info-key{color:var(--text-2);min-width:130px;font-weight:500}
+.info-val{color:var(--text);text-align:right}
+
+/* Payment months grid */
+.month-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
+.month-cell{border-radius:10px;padding:10px 12px;border:1px solid var(--border);font-size:12px}
+.month-cell .m-name{font-weight:600;margin-bottom:3px;color:var(--text)}
+.month-cell .m-amt{font-family:'DM Mono',monospace;font-size:11px;color:var(--text-2)}
+.month-cell .m-status{font-size:10px;font-weight:600;margin-top:5px;padding:2px 7px;border-radius:20px;display:inline-block}
+.month-cell.paid{background:#F0FDF4;border-color:#86EFAC}
+.month-cell.paid .m-status{background:#DCFCE7;color:#166534}
+.month-cell.pending{background:#FFFBEB;border-color:#FCD34D}
+.month-cell.pending .m-status{background:#FEF3C7;color:#92400E}
+.month-cell.overdue{background:#FEF2F2;border-color:#FCA5A5}
+.month-cell.overdue .m-status{background:#FEE2E2;color:#991B1B}
+.month-cell.future{background:var(--bg);border-color:var(--border)}
+.month-cell.future .m-status{background:#F1F5F9;color:#475569}
+
+/* Log table */
+.log-tbl{width:100%;border-collapse:collapse;font-size:13px}
+.log-tbl th{text-align:left;padding:8px 12px;font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--text-2);border-bottom:1px solid var(--border);background:#F8FAFC}
+.log-tbl td{padding:9px 12px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle}
+.log-tbl tr:last-child td{border-bottom:none}
+.log-tbl tbody tr:hover{background:#F8FAFC}
+
+/* Badge */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:500}
+.b-green{background:#DCFCE7;color:#166534}
+.b-red{background:#FEE2E2;color:#991B1B}
+.b-amber{background:#FEF3C7;color:#92400E}
+.b-gray{background:#F1F5F9;color:#475569}
+.b-teal{background:#CCFBF1;color:#0F766E}
+
+/* Today action */
+.today-action{background:var(--card);border:1.5px solid var(--accent);border-radius:14px;padding:20px 22px;box-shadow:0 0 0 4px rgba(15,118,110,.06);margin-bottom:16px}
+.today-title{font-size:13px;font-weight:600;color:var(--accent);margin-bottom:14px;display:flex;align-items:center;gap:7px}
+.act-btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:8px;font-size:13px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;border:none;transition:opacity .15s,transform .1s}
+.act-btn:active{transform:scale(.97)}
+.act-btn.delivered{background:#DCFCE7;color:#166534}
+.act-btn.delivered:hover{background:#bbf7d0}
+.act-btn.missed{background:#FEE2E2;color:#991B1B}
+.act-btn.missed:hover{background:#fecaca}
+.act-btn.holiday{background:#FEF3C7;color:#92400E}
+.act-btn.holiday:hover{background:#fde68a}
+.act-btn:disabled{opacity:.5;cursor:not-allowed}
+.act-row{display:flex;gap:10px;flex-wrap:wrap}
+
+/* Active/paused banner */
+.status-banner{border-radius:10px;padding:12px 14px;font-size:13px;display:flex;align-items:flex-start;gap:8px;margin-bottom:14px}
+.status-banner.active{background:#F0FDF4;border:1px solid #86EFAC;color:#166534}
+.status-banner.paused{background:#FFFBEB;border:1px solid #FCD34D;color:#92400E}
+
+/* Toast */
+.toast-wrap{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px}
+.toast{background:#1e293b;color:#fff;padding:11px 16px;border-radius:10px;font-size:13px;display:flex;align-items:center;gap:8px;box-shadow:0 8px 24px rgba(0,0,0,.2);animation:tin .25s ease}
+.toast.s .ti{color:#4ade80}.toast.e .ti{color:#f87171}
+@keyframes tin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+</style>
+
+<a href="{% url 'agent_delivery_list' %}" class="back-link">
+    <i class="fa fa-arrow-left"></i> Back to delivery list
+</a>
+
+<div class="detail-grid">
+
+    <!-- LEFT -->
+    <div>
+
+        <!-- Active / Paused status -->
+        {% if is_active %}
+        <div class="status-banner active">
+            <i class="fa fa-circle-check"></i>
+            <div>
+                <strong>Active — deliver today</strong><br>
+                <span style="font-size:12px;">
+                    {% if item.order.payment_type == 'one_time' %}
+                        One-time payment confirmed. Deliver for the full subscription window.
+                    {% else %}
+                        This month's payment is confirmed. Proceed with delivery.
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+        {% else %}
+        <div class="status-banner paused">
+            <i class="fa fa-triangle-exclamation"></i>
+            <div>
+                <strong>Paused — payment pending</strong><br>
+                <span style="font-size:12px;">
+                    {% if item.order.payment_type == 'monthly' %}
+                        Customer has paid {{ months_paid }}/{{ item.frequency_months }} months.
+                        Current month payment not received. Do not deliver until payment is confirmed.
+                    {% else %}
+                        Order payment not confirmed. Contact admin or customer.
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Today's action -->
+        <div class="today-action">
+            <div class="today-title"><i class="fa fa-calendar-day"></i> Today — {{ today|date:"D, M j, Y" }}</div>
+            {% if today_log %}
+                <div style="margin-bottom:12px">
+                    Status:
+                    {% if today_log.status == 'delivered' %}
+                        <span class="badge b-green"><i class="fa fa-check"></i> Delivered</span>
+                    {% elif today_log.status == 'missed' %}
+                        <span class="badge b-red"><i class="fa fa-xmark"></i> Missed</span>
+                    {% else %}
+                        <span class="badge b-amber"><i class="fa fa-umbrella-beach"></i> Customer Holiday</span>
+                    {% endif %}
+                    {% if today_log.note %}
+                    <span style="font-size:12px;color:var(--text-2);margin-left:8px;">{{ today_log.note }}</span>
+                    {% endif %}
+                </div>
+            {% endif %}
+            {% if is_active %}
+            <div class="act-row" id="action-row">
+                <button class="act-btn delivered {% if today_log.status == 'delivered' %}{% endif %}"
+                        onclick="markDelivery('delivered')"
+                        id="btn-delivered"
+                        {% if today_log and today_log.status == 'delivered' %}disabled{% endif %}>
+                    <i class="fa fa-circle-check"></i>
+                    {% if today_log and today_log.status == 'delivered' %}Delivered ✓{% else %}Mark Delivered{% endif %}
+                </button>
+                <button class="act-btn missed" onclick="markDelivery('missed')"
+                        {% if today_log %}disabled{% endif %}>
+                    <i class="fa fa-xmark"></i> Missed
+                </button>
+                <button class="act-btn holiday" onclick="markDelivery('holiday')"
+                        {% if today_log %}disabled{% endif %}>
+                    <i class="fa fa-umbrella-beach"></i> Holiday
+                </button>
+            </div>
+            {% else %}
+            <div style="font-size:13px;color:#92400E">
+                <i class="fa fa-lock"></i> Delivery locked until payment is received.
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Payment months breakdown -->
+        <div class="det-card">
+            <div class="det-title"><i class="fa fa-calendar-check"></i> Payment schedule</div>
+            {% if item.order.payment_type == 'one_time' %}
+            <div style="display:flex;align-items:center;gap:10px;padding:12px;background:#F0FDF4;border:1px solid #86EFAC;border-radius:10px;font-size:13px;color:#166534">
+                <i class="fa fa-circle-check fa-lg"></i>
+                <div>
+                    <strong>One-time payment — fully paid</strong><br>
+                    <span style="font-size:12px;">Subscription valid from
+                        {{ item.delivery_start_date|date:"M j, Y" }}
+                        to {{ item.delivery_end_date|date:"M j, Y" }}
+                    </span>
+                </div>
+            </div>
+            {% else %}
+            <div class="month-grid">
+                {% for pay in payments %}
+                <div class="month-cell {{ pay.status }}">
+                    <div class="m-name">{{ pay.month_year|date:"M Y" }}</div>
+                    <div class="m-amt">₹{{ pay.amount|floatformat:0 }}</div>
+                    <div class="m-status">{{ pay.get_status_display }}</div>
+                </div>
+                {% empty %}
+                <div style="font-size:13px;color:var(--text-2);grid-column:1/-1">No payment records yet.</div>
+                {% endfor %}
+            </div>
+            {% if months_paid < item.frequency_months %}
+            <div style="font-size:12px;color:var(--text-2);margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">
+                <i class="fa fa-info-circle" style="color:var(--accent)"></i>
+                {{ months_paid }} of {{ item.frequency_months }} months paid.
+                Delivery will be paused for unpaid months.
+            </div>
+            {% endif %}
+            {% endif %}
+        </div>
+
+        <!-- Delivery log -->
+        <div class="det-card">
+            <div class="det-title"><i class="fa fa-clipboard-list"></i> Recent delivery log</div>
+            {% if logs %}
+            <div style="overflow-x:auto">
+            <table class="log-tbl">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Note</th>
+                        <th>Marked by</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs %}
+                    <tr>
+                        <td>{{ log.delivery_date|date:"M j, Y" }}</td>
+                        <td>
+                            {% if log.status == 'delivered' %}
+                                <span class="badge b-green"><i class="fa fa-check"></i> Delivered</span>
+                            {% elif log.status == 'missed' %}
+                                <span class="badge b-red"><i class="fa fa-xmark"></i> Missed</span>
+                            {% else %}
+                                <span class="badge b-amber"><i class="fa fa-umbrella-beach"></i> Holiday</span>
+                            {% endif %}
+                        </td>
+                        <td style="color:var(--text-2)">{{ log.note|default:"—" }}</td>
+                        <td style="color:var(--text-2)">{{ log.marked_by.get_full_name|default:log.marked_by.username|default:"—" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            </div>
+            {% else %}
+            <div style="text-align:center;padding:20px;color:var(--text-2);font-size:13px">
+                No delivery logs recorded yet.
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+
+    <!-- RIGHT: customer + order info -->
+    <div>
+
+        <!-- Customer info -->
+        <div class="det-card">
+            <div class="det-title"><i class="fa fa-user"></i> Customer</div>
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+                <div style="width:44px;height:44px;border-radius:50%;background:var(--accent-light);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;color:var(--accent);flex-shrink:0">
+                    {{ customer.first_name|slice:":1" }}{{ customer.last_name|slice:":1" }}
+                </div>
+                <div>
+                    <div style="font-weight:600;font-size:14px">{{ customer.get_full_name|default:customer.username }}</div>
+                    <div style="font-size:12px;color:var(--text-2)">{{ customer.email }}</div>
+                </div>
+            </div>
+            {% with item.order.customer.shipping_addresses.first as addr %}
+            {% if addr %}
+            <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-size:13px">
+                <div style="font-weight:500;margin-bottom:4px"><i class="fa fa-location-dot" style="color:var(--accent);margin-right:5px"></i>{{ addr.name }}</div>
+                <div style="color:var(--text-2)">{{ addr.shipping_address }}{% if addr.landmark %}, {{ addr.landmark }}{% endif %}</div>
+                <div style="color:var(--text-2)">{{ addr.city }}, {{ addr.pincode }}</div>
+                <div style="color:var(--text-2);margin-top:4px"><i class="fa fa-phone" style="margin-right:4px"></i>{{ addr.phone }}</div>
+            </div>
+            {% endif %}
+            {% endwith %}
+        </div>
+
+        <!-- Order info -->
+        <div class="det-card">
+            <div class="det-title"><i class="fa fa-receipt"></i> Order info</div>
+            <div class="info-row"><span class="info-key">Order #</span><span class="info-val">#{{ item.order.id }}</span></div>
+            <div class="info-row"><span class="info-key">Product</span><span class="info-val">{{ item.product.name }}</span></div>
+            <div class="info-row">
+                <span class="info-key">Frequency</span>
+                <span class="info-val">
+                    {% if item.frequency %}{{ item.frequency.frequency }}{% else %}{{ item.frequency_months }} month(s){% endif %}
+                </span>
+            </div>
+            <div class="info-row"><span class="info-key">Copies/day</span><span class="info-val">{{ item.qty }}</span></div>
+            <div class="info-row">
+                <span class="info-key">Start date</span>
+                <span class="info-val">{{ item.delivery_start_date|date:"M j, Y"|default:"—" }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-key">End date</span>
+                <span class="info-val">{{ item.delivery_end_date|date:"M j, Y"|default:"—" }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-key">Payment type</span>
+                <span class="info-val">
+                    {% if item.order.payment_type == 'one_time' %}
+                        <span class="badge b-teal">One-time</span>
+                    {% else %}
+                        <span class="badge b-amber">Monthly</span>
+                    {% endif %}
+                </span>
+            </div>
+            <div class="info-row">
+                <span class="info-key">Order status</span>
+                <span class="info-val">
+                    <span class="badge b-green">{{ item.order.get_status_display }}</span>
+                </span>
+            </div>
+            <div class="info-row">
+                <span class="info-key">Monthly rate</span>
+                <span class="info-val" style="font-family:'DM Mono',monospace;font-weight:600">₹{{ item.product.price|floatformat:0 }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-key">Total amount</span>
+                <span class="info-val" style="font-family:'DM Mono',monospace;font-weight:600;color:var(--accent)">
+                    ₹{% widthratio item.product.price 1 item.frequency_months %}</span>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div class="toast-wrap" id="tw"></div>
+<input type="hidden" id="csrf" value="{{ csrf_token }}">
+<input type="hidden" id="item-id" value="{{ item.id }}">
+
+<script>
+async function markDelivery(deliveryStatus) {
+    const csrf = document.getElementById('csrf').value;
+    const itemId = document.getElementById('item-id').value;
+
+    document.querySelectorAll('.act-btn').forEach(b => b.disabled = true);
+
+    try {
+        const r = await fetch("{% url 'mark_delivery' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': csrf
+            },
+            body: `item_id=${itemId}&delivery_status=${deliveryStatus}`
+        });
+        const d = await r.json();
+        if (d.status === 'success') {
+            toast(`Marked as ${deliveryStatus}`, 's');
+            setTimeout(() => location.reload(), 800);
+        } else {
+            toast(d.message || 'Error', 'e');
+            document.querySelectorAll('.act-btn').forEach(b => b.disabled = false);
+        }
+    } catch (e) {
+        toast('Something went wrong', 'e');
+        document.querySelectorAll('.act-btn').forEach(b => b.disabled = false);
+    }
+}
+
+function toast(msg, type) {
+    const w = document.getElementById('tw');
+    const t = document.createElement('div');
+    t.className = `toast ${type}`;
+    t.innerHTML = `<i class="fa ${type==='s'?'fa-circle-check':'fa-circle-exclamation'} ti"></i>${msg}`;
+    w.appendChild(t);
+    setTimeout(() => { t.style.opacity='0'; t.style.transition='opacity .3s'; setTimeout(()=>t.remove(),350); }, 3000);
+}
+</script>
+{% endblock %}
