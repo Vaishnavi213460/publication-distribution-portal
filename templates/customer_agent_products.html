@@ -134,7 +134,7 @@
     {% for product in products %}
     <div class="prod-card">
         <div class="prod-thumb">
-            <img src="{% static 'img/products/product-1.jpg' %}" alt="{{ product.name }}">
+            <img src="{% if product.image %}{{ product.image.url }}{% else %}{% static 'img/products/product-1.jpg' %}{% endif %}" alt="{{ product.name }}">
             {% if product.frequency.all %}
             <span class="prod-freq-badge">{{ product.frequency.all|join:", " }}</span>
             {% endif %}

@@ -66,7 +66,7 @@
         {% for item in cart_items %}
         <div class="cart-item" id="ci-{{ item.id }}">
             <div class="ci-img">
-                <img src="{% static 'img/products/product-1.jpg' %}" alt="{{ item.product.name }}">
+                <img src="{% if item.product.image %}{{ item.product.image.url }}{% else %}{% static 'img/products/product-1.jpg' %}{% endif %}" alt="{{ item.product.name }}">
             </div>
             <div class="ci-body">
                 <div class="ci-name">{{ item.product.name }}</div>

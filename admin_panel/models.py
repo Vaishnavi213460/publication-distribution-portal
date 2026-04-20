@@ -22,7 +22,7 @@ class Product(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)
     price_from = models.CharField(max_length=20)
     magazine_type = models.CharField(max_length=50)
-    issue_day = models.CharField(max_length=50)
+    issue_day = models.DateField(blank=True, null=True)
     details = models.TextField()
     image = models.ImageField(upload_to='products/', blank=True, null=True)
     frequency = models.ManyToManyField(Frequency, blank=True)
