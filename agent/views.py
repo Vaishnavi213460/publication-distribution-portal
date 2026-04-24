@@ -34,9 +34,8 @@ def _get_all_agent_items(agent):
     """All confirmed OrderCart items for products supplied by this agent."""
     if not agent:
         return OrderCart.objects.none()
-    supplier_ids = _get_agent_supplier_ids(agent)
     return OrderCart.objects.filter(
-        product__supplier__id__in=supplier_ids,
+        product__supplier__agentsupp__agent=agent,
         order__status='payment_received',
     ).select_related('product', 'order', 'order__customer', 'frequency')
 
@@ -77,7 +76,7 @@ def _item_belongs_to_agent(item, agent):
     if not agent:
         return False
     supplier_ids = _get_agent_supplier_ids(agent)
-    return item.product.supplier_id in supplier_ids
+    return item.product.supplier_set.filter(id__in=supplier_ids).exists()
 
 
 # ─────────────────────────────────────────────────────────────

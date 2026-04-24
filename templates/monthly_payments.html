@@ -1,0 +1,158 @@
+{% extends 'customerheader.html' %}
+{% load static %}
+
+{% block title %}Monthly Payments — Publication Portal{% endblock %}
+{% block breadcrumb %}Monthly Payments{% endblock %}
+
+{% block content %}
+<style>
+  :root {
+    --paid-bg: #EAF3DE; --paid-border: #C0DD97; --paid-text: #27500A;
+    --pending-bg: #FAEEDA; --pending-border: #FAC775; --pending-text: #633806;
+    --overdue-bg: #FCEBEB; --overdue-border: #F7C1C1; --overdue-text: #791F1F;
+  }
+
+  .page-title { font-size: 20px; font-weight: 500; margin: 0 0 4px; }
+  .page-sub { font-size: 14px; color: #6b7280; margin: 0 0 1.5rem; }
+
+  .summary-row { display: flex; gap: 10px; margin-bottom: 1.5rem; flex-wrap: wrap; }
+  .sum-card { flex: 1; min-width: 140px; background: #f9f9f8; border-radius: 10px; padding: 12px 16px; }
+  .sum-label { font-size: 12px; color: #6b7280; margin-bottom: 4px; }
+  .sum-value { font-size: 22px; font-weight: 500; }
+  .sum-sub { font-size: 12px; color: #9ca3af; margin-top: 2px; }
+  .sum-due .sum-value { color: #b45309; }
+  .sum-paid .sum-value { color: #166534; }
+
+  .sub-card { background: #fff; border: 0.5px solid #e5e7eb; border-radius: 12px; margin-bottom: 1rem; overflow: hidden; }
+  .sub-card-header { display: flex; justify-content: space-between; align-items: center; padding: 13px 18px; border-bottom: 0.5px solid #e5e7eb; background: #fafafa; }
+  .order-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: #9ca3af; font-weight: 500; }
+  .order-id { font-size: 16px; font-weight: 500; }
+  .order-date { font-size: 12px; color: #9ca3af; margin-top: 2px; }
+  .order-badge { font-size: 12px; background: #f3f4f6; border: 0.5px solid #e5e7eb; color: #6b7280; padding: 4px 10px; border-radius: 20px; }
+
+  .sub-body { padding: 18px; }
+  .item-row { padding-bottom: 18px; margin-bottom: 18px; border-bottom: 0.5px solid #f0f0f0; }
+  .item-row:last-child { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
+  .item-meta { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; flex-wrap: wrap; gap: 4px; }
+  .item-name { font-size: 15px; font-weight: 500; }
+  .item-rate { font-size: 13px; color: #6b7280; }
+
+  .payment-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+  .ptile { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 14px; border-radius: 8px; min-width: 80px; border: 0.5px solid; }
+  .ptile-month { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 500; }
+  .ptile-amount { font-size: 14px; font-weight: 500; }
+  .ptile-action { font-size: 11px; }
+
+  .ptile.status-paid    { background: var(--paid-bg);    border-color: var(--paid-border);    color: var(--paid-text); }
+  .ptile.status-pending { background: var(--pending-bg); border-color: var(--pending-border); color: var(--pending-text); }
+  .ptile.status-overdue { background: var(--overdue-bg); border-color: var(--overdue-border); color: var(--overdue-text); }
+
+  .paid-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #3B6D11; margin-right: 3px; }
+  .pay-btn { background: #111; color: #fff; border: none; border-radius: 4px; font-size: 11px; padding: 4px 10px; cursor: pointer; font-weight: 500; text-decoration: none; display: inline-block; margin-top: 2px; }
+  .pay-btn:hover { background: #333; color: #fff; }
+
+  .empty-state { text-align: center; padding: 60px 20px; background: #fff; border: 0.5px solid #e5e7eb; border-radius: 12px; }
+  .empty-icon { font-size: 40px; color: #d1d5db; margin-bottom: 16px; }
+  .empty-state h4 { font-size: 16px; font-weight: 500; margin-bottom: 8px; }
+  .empty-state p { font-size: 14px; color: #6b7280; max-width: 360px; margin: 0 auto 20px; }
+</style>
+
+<div class="container-fluid py-4">
+  <div class="row justify-content-center">
+    <div class="col-12 col-lg-10">
+
+      <h3 class="page-title">My subscriptions</h3>
+      <p class="page-sub">Track and manage your recurring magazine payments</p>
+
+      {% if monthly_orders %}
+
+        {# ── Summary bar ── #}
+        {% with total_pending=0 total_paid=0 %}
+        <div class="summary-row">
+          <div class="sum-card">
+            <div class="sum-label">Active subscriptions</div>
+            <div class="sum-value">{{ monthly_orders.count }}</div>
+            <div class="sum-sub">orders</div>
+          </div>
+          <div class="sum-card sum-due">
+            <div class="sum-label">Pending this month</div>
+            <div class="sum-value">
+              ₹{% with amt=0 %}
+                {% for order in monthly_orders %}
+                  {% for item in order.items_with_payments %}
+                    {% for p in item.monthly_payments.all %}
+                      {% if p.status == 'pending' or p.status == 'overdue' %}
+                        {# Django templates can't accumulate sums easily; use a tag or just show count #}
+                      {% endif %}
+                    {% endfor %}
+                  {% endfor %}
+                {% endfor %}
+              {% endwith %}
+              —
+            </div>
+            <div class="sum-sub">due now</div>
+          </div>
+          <div class="sum-card sum-paid">
+            <div class="sum-label">Paid payments</div>
+            <div class="sum-value">—</div>
+            <div class="sum-sub">this year</div>
+          </div>
+        </div>
+        {% endwith %}
+
+        {# ── Order cards ── #}
+        {% for order in monthly_orders %}
+        <div class="sub-card">
+          <div class="sub-card-header">
+            <div>
+              <div class="order-label">Order</div>
+              <div class="order-id">#{{ order.id }}</div>
+              <div class="order-date">Placed: {{ order.order_date|date:"M d, Y" }}</div>
+            </div>
+            <span class="order-badge">{{ order.items_with_payments|length }} item{{ order.items_with_payments|length|pluralize }}</span>
+          </div>
+
+          <div class="sub-body">
+            {% for item in order.items_with_payments %}
+            <div class="item-row">
+              <div class="item-meta">
+                <span class="item-name">{{ item.product.name }}</span>
+                <span class="item-rate">₹{{ item.product.price|floatformat:0 }}/month &middot; qty {{ item.qty }}</span>
+              </div>
+
+              <div class="payment-grid">
+                {% for payment in item.monthly_payments.all %}
+                <div class="ptile status-{{ payment.status }}">
+                  <span class="ptile-month">{{ payment.month_year|date:"M y" }}</span>
+                  <span class="ptile-amount">₹{{ payment.amount|floatformat:0 }}</span>
+                  {% if payment.status == 'paid' %}
+                    <span class="ptile-action"><span class="paid-dot"></span>paid</span>
+                  {% else %}
+                    <a href="{% url 'pay_monthly_payment' payment.id %}" class="pay-btn">Pay now</a>
+                  {% endif %}
+                </div>
+                {% empty %}
+                  <span style="font-size:13px; color:#9ca3af;">No payments scheduled yet.</span>
+                {% endfor %}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+
+      {% else %}
+        <div class="empty-state">
+          <div class="empty-icon"><i class="fa fa-receipt"></i></div>
+          <h4>No active subscriptions</h4>
+          <p>You don't have any pending monthly payments. Start a subscription to see your payment schedule here.</p>
+          <a href="{% url 'customer_shop' %}" class="btn btn-primary px-4">
+            <i class="fa fa-shopping-bag me-2"></i>Browse publications
+          </a>
+        </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -162,7 +162,9 @@
                 {% csrf_token %}
                 <button type="button" class="btn-pay" id="pay-btn" onclick="processPayment()">
                     <i class="fa fa-lock"></i>
-                    {% if payment_type == 'monthly' %}
+                    {% if payment_type == 'monthly_single' %}
+                        {{ payment_title }} — ₹{{ total|floatformat:0 }}
+                    {% elif payment_type == 'monthly' %}
                         Pay ₹{{ monthly_total|floatformat:0 }} now (first month)
                     {% else %}
                         Pay ₹{{ total|floatformat:0 }} now
@@ -188,7 +190,7 @@
 
         <div class="sum-row"><span>Payment type</span>
             <span class="badge" style="background:var(--accent-light);color:var(--accent);font-size:11px;padding:2px 8px;border-radius:20px;">
-                {% if payment_type == 'monthly' %}Monthly{% else %}One-time{% endif %}
+                {% if payment_type == 'monthly_single' %}Monthly Payment{% elif payment_type == 'monthly' %}Monthly{% else %}One-time{% endif %}
             </span>
         </div>
         <div class="sum-row"><span>Total amount</span><span>₹{{ total|floatformat:2 }}</span></div>

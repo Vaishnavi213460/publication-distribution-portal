@@ -308,6 +308,29 @@ def checkout_view(request):
 def payment_page(request):
     if not request.user.is_authenticated:
         return redirect('login')
+    
+    # Check for monthly payment ID first (single month payment)
+    monthly_payment_id = request.session.get('monthly_payment_id')
+    if monthly_payment_id:
+        payment = get_object_or_404(MonthlyPayment.objects.select_related('order_item'), id=monthly_payment_id)
+        if payment.order_item.order.customer != request.user or payment.status != 'pending':
+            # Clear invalid session and redirect
+            request.session.pop('monthly_payment_id', None)
+            return redirect('monthly_payments')
+        
+        shipping_id = request.session.get('shipping_id')
+        shipping = get_object_or_404(ShippingDetails, id=shipping_id, customer=request.user) if shipping_id else None
+        
+        return render(request, 'payment.html', {
+            'monthly_payment': payment,
+            'total': payment.amount,
+            'monthly_total': payment.amount,
+            'payment_type': 'monthly_single',
+            'shipping': shipping,
+            'payment_title': request.session.get('payment_title', 'Monthly Payment'),
+        })
+    
+    # Original cart/order payment flow
     order_id = request.session.get('pending_order_id')
     if not order_id:
         return redirect('cart')
@@ -327,6 +350,27 @@ def confirm_payment(request):
     if not request.user.is_authenticated or request.method != 'POST':
         return redirect('login')
 
+    # Check for monthly single payment first
+    monthly_payment_id = request.session.get('monthly_payment_id')
+    if monthly_payment_id:
+        payment = get_object_or_404(MonthlyPayment.objects.select_related('order_item'), id=monthly_payment_id)
+        if payment.order_item.order.customer != request.user or payment.status != 'pending':
+            return redirect('monthly_payments')
+        
+        # Mark as paid
+        payment.status = 'paid'
+        payment.paid_at = date.today()
+        payment.save()
+        
+        # Clear session
+        request.session.pop('monthly_payment_id', None)
+        request.session.pop('monthly_amount', None)
+        request.session.pop('payment_title', None)
+        request.session.pop('shipping_id', None)
+        
+        return redirect('order_success')
+    
+    # Original cart/order payment flow
     order_id = request.session.get('pending_order_id')
     if not order_id:
         return redirect('cart')
@@ -383,3 +427,8 @@ def confirm_payment(request):
 # ────────────────────────────────────────────────────────────
 def order_success(request):
     return render(request, 'order_success.html')
+
+# ────────────────────────────────────────────────────────────
+# Monthly Payments (imported from views_monthly.py)
+# ────────────────────────────────────────────────────────────
+from .views_monthly import monthly_payments_view, pay_monthly_redirect
