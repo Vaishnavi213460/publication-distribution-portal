@@ -1,21 +1,10 @@
-# Monthly Payments Menu Implementation - Task Progress ✓ COMPLETE
+# Agent & Admin Payment Report — Current Month Only
 
-## Summary
-✅ Customer sidebar "Online Payments" → List pending months → "Pay Now" → Payment page → Success.
-
-## Changes:
-- `templates/monthly_payments.html` (new)
-- `customer/views_monthly.py` (new views + fixed syntax)
-- `customer/views.py` (imports + payment_page/confirm_payment extended)
-- `customer/urls.py` (monthly-payments/ + pay-monthly/)
-- `templates/customerheader.html` (link update)
-- `templates/payment.html` (monthly_single support)
-
-## .gitignore
-✅ Already excludes `__pycache__/`, `*.pyc`, `venv/`, `media/`, `.env`.
-
-## Test
-`python manage.py runserver` → Login customer → Create monthly order → Sidebar → Payments → Works!
-
-**Ready for production.** 🚀
+## Steps
+- [x] Modify `agent/views.py` — `agent_payment_report` to show only current month
+- [x] Modify `templates/agent_payment_report.html` — current month UI
+- [x] Add `admin_payment_report` view in `admin_panel/views.py`
+- [x] Add URL pattern in `admin_panel/urls.py`
+- [x] Create `templates/admin_payment_report.html`
+- [x] Update `templates/adminheader.html` with admin menu link
 

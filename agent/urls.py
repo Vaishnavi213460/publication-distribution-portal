@@ -14,4 +14,7 @@ urlpatterns = [
     path('deliveries/mark/',         views.mark_delivery,       name='mark_delivery'),
     path('deliveries/<int:item_id>/', views.agent_order_detail, name='agent_order_detail'),
     path('agent-toggle-status/<int:id>/', views.toggle_agent_status, name='toggle_agent_status'),
+
+    # ── Payment report ───────────────────────────────────────
+    path('payment-report/', views.agent_payment_report, name='agent_payment_report'),
 ]

@@ -283,3 +283,72 @@ def toggle_agent_status(request, id):
 
     agent.save()
     return redirect(request.META.get('HTTP_REFERER', 'agent_list'))
+
+
+# ─────────────────────────────────────────────────────────────
+# NEW: Agent Payment Report — current month earnings only
+# ─────────────────────────────────────────────────────────────
+@login_required
+def agent_payment_report(request):
+    """
+    Show how much this agent earned in the CURRENT MONTH only.
+
+    One-time orders:
+        If current month falls inside the delivery window,
+        count monthly_amount() for this month.
+
+    Monthly orders:
+        Only count MonthlyPayment rows with status='paid'
+        for the current month.
+    """
+    agent = _get_agent(request.user)
+    items = _get_all_agent_items(agent)
+    today = date.today()
+    current_month = date(today.year, today.month, 1)
+
+    one_time_total = 0.0
+    monthly_total = 0.0
+    item_breakdown = []
+
+    for item in items:
+        if item.order.payment_type == 'one_time':
+            start = item.delivery_start_date
+            end = item.delivery_end_date
+            if start and end:
+                start_month = date(start.year, start.month, 1)
+                end_month = date(end.year, end.month, 1)
+                if start_month <= current_month <= end_month:
+                    amt = float(item.monthly_amount())
+                    one_time_total += amt
+                    item_breakdown.append({
+                        'customer': item.order.customer.get_full_name() or item.order.customer.username,
+                        'product': item.product.name,
+                        'type': 'one_time',
+                        'amount': amt,
+                    })
+        else:
+            payment = item.monthly_payments.filter(
+                status='paid',
+                month_year__year=today.year,
+                month_year__month=today.month,
+            ).first()
+            if payment:
+                amt = float(payment.amount)
+                monthly_total += amt
+                item_breakdown.append({
+                    'customer': item.order.customer.get_full_name() or item.order.customer.username,
+                    'product': item.product.name,
+                    'type': 'monthly',
+                    'amount': amt,
+                })
+
+    total_earnings = one_time_total + monthly_total
+
+    return render(request, 'agent_payment_report.html', {
+        'month_label': today.strftime('%B %Y'),
+        'one_time_total': one_time_total,
+        'monthly_total': monthly_total,
+        'total_earnings': total_earnings,
+        'item_breakdown': item_breakdown,
+        'agent': agent,
+    })

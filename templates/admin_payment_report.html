@@ -1,0 +1,131 @@
+{% extends 'adminheader.html' %}
+
+{% block title %}Payment Report — Admin Portal{% endblock %}
+{% block breadcrumb %}Payment Report{% endblock %}
+
+{% block content %}
+<style>
+/* ── Month banner ── */
+.month-banner{background:linear-gradient(135deg,var(--accent),#818cf8);color:#fff;border-radius:12px;padding:18px 24px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 16px rgba(99,102,241,.25)}
+.month-banner h2{font-size:18px;font-weight:600;margin:0}
+.month-banner .sub{font-size:13px;opacity:.85;margin-top:3px}
+
+/* ── Stats ── */
+.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:24px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 18px;box-shadow:var(--shadow)}
+.stat-lbl{font-size:11px;color:var(--text-2);font-weight:500;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.stat-val{font-size:24px;font-weight:600;font-family:'DM Mono',monospace;color:var(--text)}
+.stat-val.green{color:#10b981}.stat-val.blue{color:#3b82f6}.stat-val.purple{color:var(--accent)}
+
+/* ── Table ── */
+.rpt-table{width:100%;border-collapse:separate;border-spacing:0;background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:var(--shadow)}
+.rpt-table th{background:var(--bg);padding:12px 16px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--text-2);text-align:left;border-bottom:1px solid var(--border)}
+.rpt-table td{padding:14px 16px;font-size:13.5px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle}
+.rpt-table tr:last-child td{border-bottom:none}
+.rpt-table tr:hover td{background:#f8fafc}
+.rpt-table td.num{font-family:'DM Mono',monospace;font-weight:500;text-align:right}
+.rpt-table .total-row td{background:var(--accent-light);font-weight:600}
+.rpt-table .total-row td.num{color:var(--accent);font-size:15px}
+
+/* ── Agent name chip ── */
+.agent-chip{display:flex;align-items:center;gap:10px}
+.agent-av{width:32px;height:32px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#fff;flex-shrink:0}
+.agent-name{font-weight:500}
+.agent-code{font-size:11px;color:var(--text-2);margin-top:1px}
+
+/* ── Badges ── */
+.badge-one-time{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500;background:#E0F2FE;border:1px solid #7DD3FC;color:#0369A1}
+.badge-monthly{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500;background:#F3E8FF;border:1px solid #D8B4FE;color:#7E22CE}
+
+/* ── Empty state ── */
+.empty{text-align:center;padding:60px 20px;background:var(--card);border:1px solid var(--border);border-radius:14px}
+.empty-icon{width:60px;height:60px;border-radius:50%;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:22px;color:#94a3b8}
+</style>
+
+<!-- Month banner -->
+<div class="month-banner">
+    <div>
+        <h2><i class="fa fa-calendar-check" style="margin-right:8px"></i> {{ month_label }}</h2>
+        <div class="sub">Current month earnings across all agents</div>
+    </div>
+    <div style="font-size:28px;font-weight:600;font-family:'DM Mono',monospace">₹{{ grand_total|floatformat:2 }}</div>
+</div>
+
+<!-- Stats -->
+<div class="stat-row">
+    <div class="stat-card">
+        <div class="stat-lbl">Grand Total Earnings</div>
+        <div class="stat-val purple">₹{{ grand_total|floatformat:2 }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-lbl">One-time Orders</div>
+        <div class="stat-val blue">₹{{ grand_one_time|floatformat:2 }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-lbl">Monthly Payments</div>
+        <div class="stat-val green">₹{{ grand_monthly|floatformat:2 }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-lbl">Active Agents</div>
+        <div class="stat-val">{{ agent_rows|length }}</div>
+    </div>
+</div>
+
+{% if agent_rows %}
+<table class="rpt-table">
+    <thead>
+        <tr>
+            <th>Agent</th>
+            <th style="text-align:right">One-time Earnings</th>
+            <th style="text-align:right">Monthly Earnings</th>
+            <th style="text-align:right">Total Earnings</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for row in agent_rows %}
+        <tr>
+            <td>
+                <div class="agent-chip">
+                    <div class="agent-av">{{ row.agent.name|slice:":1" }}</div>
+                    <div>
+                        <div class="agent-name">{{ row.agent.name }}</div>
+                        <div class="agent-code">Code: {{ row.agent.code }}</div>
+                    </div>
+                </div>
+            </td>
+            <td class="num">
+                {% if row.one_time_total > 0 %}
+                    <span class="badge-one-time"><i class="fa fa-bolt"></i> ₹{{ row.one_time_total|floatformat:2 }}</span>
+                {% else %}
+                    <span style="color:#94a3b8">—</span>
+                {% endif %}
+            </td>
+            <td class="num">
+                {% if row.monthly_total > 0 %}
+                    <span class="badge-monthly"><i class="fa fa-calendar-check"></i> ₹{{ row.monthly_total|floatformat:2 }}</span>
+                {% else %}
+                    <span style="color:#94a3b8">—</span>
+                {% endif %}
+            </td>
+            <td class="num" style="font-weight:600">₹{{ row.total|floatformat:2 }}</td>
+        </tr>
+    {% endfor %}
+        <tr class="total-row">
+            <td><strong>Grand Total</strong></td>
+            <td class="num">₹{{ grand_one_time|floatformat:2 }}</td>
+            <td class="num">₹{{ grand_monthly|floatformat:2 }}</td>
+            <td class="num">₹{{ grand_total|floatformat:2 }}</td>
+        </tr>
+    </tbody>
+</table>
+{% else %}
+<div class="empty">
+    <div class="empty-icon"><i class="fa fa-file-invoice"></i></div>
+    <div style="font-size:16px;font-weight:600;color:var(--text);margin-bottom:6px">No earnings this month</div>
+    <div style="font-size:13px;color:var(--text-2)">
+        Agent earnings will appear here once orders are paid and confirmed for {{ month_label }}.
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+

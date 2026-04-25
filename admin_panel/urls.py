@@ -34,5 +34,8 @@ urlpatterns = [
     path('customer/', views.customer_list, name='customer_list'),
     path('orders/', views.customer_order_list, name='customer_order_list'),
 
+    # Payment Report
+    path('payment-report/', views.admin_payment_report, name='admin_payment_report'),
+
 ]
 
