@@ -1,0 +1,204 @@
+{% extends 'adminheader.html' %}
+
+{% block title %}Complaints — Admin Portal{% endblock %}
+{% block breadcrumb %}Complaints{% endblock %}
+
+{% block content %}
+<style>
+  .page-title { font-size: 20px; font-weight: 600; margin: 0 0 4px; }
+  .page-sub { font-size: 13px; color: var(--text-2); margin: 0 0 20px; }
+
+  .comp-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .comp-table th {
+    background: var(--bg);
+    padding: 12px 16px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--text-2);
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  .comp-table td {
+    padding: 14px 16px;
+    font-size: 13px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    vertical-align: middle;
+  }
+  .comp-table tr:last-child td { border-bottom: none; }
+  .comp-table tr:hover td { background: #f8fafc; }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .b-pending { background: #FEF3C7; color: #92400E; }
+  .b-in-review { background: #DBEAFE; color: #1E40AF; }
+  .b-resolved { background: #DCFCE7; color: #166534; }
+  .b-rejected { background: #FEE2E2; color: #991B1B; }
+
+  .chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .chip-av {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: #fff;
+  }
+
+  .reply-form {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .reply-form input[type="text"] {
+    width: 160px;
+    height: 32px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0 10px;
+    font-size: 12px;
+    font-family: 'DM Sans', sans-serif;
+    outline: none;
+  }
+  .reply-form input[type="text"]:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(99,102,241,.1);
+  }
+  .reply-form select {
+    height: 32px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0 8px;
+    font-size: 12px;
+    font-family: 'DM Sans', sans-serif;
+    outline: none;
+    background: #fff;
+  }
+  .reply-form button {
+    height: 32px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 0 12px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity .12s;
+  }
+  .reply-form button:hover { opacity: .9; }
+
+  .reply-text {
+    font-size: 12px;
+    color: var(--text-2);
+    font-style: italic;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+  }
+  .empty-icon { width: 60px; height: 60px; border-radius: 50%; background: var(--bg); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; font-size: 22px; color: #94a3b8; }
+</style>
+
+<div class="page-title">All Complaints</div>
+<div class="page-sub">Manage customer complaints against agents</div>
+
+{% if complaints %}
+<table class="comp-table">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Customer</th>
+      <th>Agent</th>
+      <th>Complaint</th>
+      <th>Date</th>
+      <th>Status</th>
+      <th>Reply / Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for c in complaints %}
+    <tr>
+      <td>#{{ c.id }}</td>
+      <td>
+        <div class="chip">
+          <div class="chip-av">{{ c.customer.first_name|slice:":1"|default:c.customer.username|slice:":1" }}</div>
+          <span>{{ c.customer.get_full_name|default:c.customer.username }}</span>
+        </div>
+      </td>
+      <td>
+        <div class="chip">
+          <div class="chip-av">{{ c.agent.name|slice:":1" }}</div>
+          <span>{{ c.agent.name }}</span>
+        </div>
+      </td>
+      <td>{{ c.complaint }}</td>
+      <td>{{ c.comp_date|date:"M d, Y" }}</td>
+      <td>
+        <span class="badge b-{{ c.comp_status|slugify }}">
+          {% if c.comp_status == 'Pending' %}<i class="fa fa-clock"></i>
+          {% elif c.comp_status == 'In Review' %}<i class="fa fa-eye"></i>
+          {% elif c.comp_status == 'Resolved' %}<i class="fa fa-check"></i>
+          {% else %}<i class="fa fa-xmark"></i>{% endif %}
+          {{ c.comp_status }}
+        </span>
+      </td>
+      <td>
+        {% if c.comp_reply %}
+          <span class="reply-text">"{{ c.comp_reply }}"</span>
+        {% endif %}
+        <form method="post" action="{% url 'admin_complaint_reply' c.id %}" class="reply-form" style="margin-top:6px;">
+          {% csrf_token %}
+          <input type="text" name="comp_reply" placeholder="Reply (max 50 chars)" maxlength="50" value="{{ c.comp_reply }}" required>
+          <select name="comp_status">
+            <option value="Pending" {% if c.comp_status == 'Pending' %}selected{% endif %}>Pending</option>
+            <option value="In Review" {% if c.comp_status == 'In Review' %}selected{% endif %}>In Review</option>
+            <option value="Resolved" {% if c.comp_status == 'Resolved' %}selected{% endif %}>Resolved</option>
+            <option value="Rejected" {% if c.comp_status == 'Rejected' %}selected{% endif %}>Rejected</option>
+          </select>
+          <button type="submit"><i class="fa fa-paper-plane"></i> Update</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<div class="empty-state">
+  <div class="empty-icon"><i class="fa fa-triangle-exclamation"></i></div>
+  <div style="font-size:16px;font-weight:600;color:var(--text);margin-bottom:6px">No complaints</div>
+  <div style="font-size:13px;color:var(--text-2)">No complaints have been filed yet.</div>
+</div>
+{% endif %}
+{% endblock %}
+

@@ -10,7 +10,7 @@ from .forms import AgentSuppForm
 from .models import AgentSupp
 
 # Import customer models for delivery tracking
-from customer.models import CustomerOrder, OrderCart, DailyDeliveryLog, MonthlyPayment
+from customer.models import CustomerOrder, OrderCart, DailyDeliveryLog, MonthlyPayment, Complaint
 
 
 # ─────────────────────────────────────────────────────────────
@@ -350,5 +350,24 @@ def agent_payment_report(request):
         'monthly_total': monthly_total,
         'total_earnings': total_earnings,
         'item_breakdown': item_breakdown,
+        'agent': agent,
+    })
+
+
+# ─────────────────────────────────────────────────────────────
+# NEW: Agent Complaints — complaints filed against this agent
+# ─────────────────────────────────────────────────────────────
+@login_required
+def agent_complaints(request):
+    agent = _get_agent(request.user)
+    if not agent:
+        return redirect('login')
+
+    complaints = Complaint.objects.filter(
+        agent=agent
+    ).select_related('customer').order_by('-comp_date')
+
+    return render(request, 'agent_complaints.html', {
+        'complaints': complaints,
         'agent': agent,
     })

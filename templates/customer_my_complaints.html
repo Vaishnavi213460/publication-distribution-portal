@@ -1,0 +1,166 @@
+{% extends 'customerheader.html' %}
+{% load static %}
+
+{% block title %}My Complaints — Publication Portal{% endblock %}
+{% block breadcrumb %}My Complaints{% endblock %}
+
+{% block content %}
+<style>
+  .page-title { font-size: 20px; font-weight: 600; margin: 0 0 4px; }
+  .page-sub { font-size: 13px; color: #6b7280; margin: 0 0 20px; }
+
+  .comp-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: #fff;
+    border: 0.5px solid #e5e7eb;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,.04);
+  }
+  .comp-table th {
+    background: #f9fafb;
+    padding: 12px 16px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: #6b7280;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .comp-table td {
+    padding: 14px 16px;
+    font-size: 13px;
+    border-bottom: 1px solid #f3f4f6;
+    color: #374151;
+    vertical-align: middle;
+  }
+  .comp-table tr:last-child td { border-bottom: none; }
+  .comp-table tr:hover td { background: #f9fafb; }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .b-pending { background: #FEF3C7; color: #92400E; }
+  .b-review { background: #DBEAFE; color: #1E40AF; }
+  .b-resolved { background: #DCFCE7; color: #166534; }
+  .b-rejected { background: #FEE2E2; color: #991B1B; }
+
+  .reply-text {
+    font-size: 12px;
+    color: #6b7280;
+    font-style: italic;
+  }
+  .reply-text.empty { color: #9ca3af; }
+
+  .agent-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .agent-av {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: #fff;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    background: #fff;
+    border: 0.5px solid #e5e7eb;
+    border-radius: 14px;
+  }
+  .empty-icon { font-size: 40px; color: #d1d5db; margin-bottom: 16px; }
+  .empty-state h4 { font-size: 16px; font-weight: 500; margin-bottom: 8px; }
+  .empty-state p { font-size: 13px; color: #6b7280; margin-bottom: 20px; }
+
+  .btn-new {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+  }
+</style>
+
+<div class="page-title">My Complaints</div>
+<div class="page-sub">Track the status of complaints you've filed</div>
+
+{% if complaints %}
+<table class="comp-table">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Agent</th>
+      <th>Complaint</th>
+      <th>Date</th>
+      <th>Status</th>
+      <th>Reply</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for c in complaints %}
+    <tr>
+      <td>#{{ c.id }}</td>
+      <td>
+        <div class="agent-chip">
+          <div class="agent-av">{{ c.agent.name|slice:":1" }}</div>
+          <span>{{ c.agent.name }}</span>
+        </div>
+      </td>
+      <td>{{ c.complaint }}</td>
+      <td>{{ c.comp_date|date:"M d, Y" }}</td>
+      <td>
+        <span class="badge b-{{ c.comp_status|slugify }}">
+          {% if c.comp_status == 'Pending' %}<i class="fa fa-clock"></i>
+          {% elif c.comp_status == 'In Review' %}<i class="fa fa-eye"></i>
+          {% elif c.comp_status == 'Resolved' %}<i class="fa fa-check"></i>
+          {% else %}<i class="fa fa-xmark"></i>{% endif %}
+          {{ c.comp_status }}
+        </span>
+      </td>
+      <td>
+        {% if c.comp_reply %}
+          <span class="reply-text">"{{ c.comp_reply }}"</span>
+        {% else %}
+          <span class="reply-text empty">—</span>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<div class="empty-state">
+  <div class="empty-icon"><i class="fa fa-triangle-exclamation"></i></div>
+  <h4>No complaints filed</h4>
+  <p>You haven't filed any complaints yet. If you're facing issues with an agent, you can file a complaint.</p>
+  <a href="{% url 'add_complaint' %}" class="btn-new">
+    <i class="fa fa-plus"></i>File New Complaint
+  </a>
+</div>
+{% endif %}
+{% endblock %}
+

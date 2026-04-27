@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from admin_panel.models import Product, Frequency
+from login.models import Agent
 from datetime import date
 
 
@@ -184,3 +185,28 @@ class ShippingDetails(models.Model):
 
     class Meta:
         verbose_name_plural = 'Shipping Details'
+
+
+class Complaint(models.Model):
+    """Customer complaints against agents."""
+    STATUS_CHOICES = [
+        ('Pending', 'Pending'),
+        ('In Review', 'In Review'),
+        ('Resolved', 'Resolved'),
+        ('Rejected', 'Rejected'),
+    ]
+    customer = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='complaints'
+    )
+    agent = models.ForeignKey(
+        Agent, on_delete=models.CASCADE, related_name='complaints'
+    )
+    complaint = models.CharField(max_length=50)
+    comp_date = models.DateField(auto_now_add=True)
+    comp_reply = models.CharField(max_length=50, default='')
+    comp_status = models.CharField(
+        max_length=15, choices=STATUS_CHOICES, default='Pending'
+    )
+
+    def __str__(self):
+        return f"Complaint #{self.id} — {self.customer.username} vs {self.agent.name}"

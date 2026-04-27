@@ -1,11 +1,11 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from datetime import date
-from .models import Location, Frequency, Product, Supplier
-from .forms import LocationForm, FrequencyForm, ProductForm, SupplierForm, AgentSuppForm
+from .models import Location, Frequency, Product, Supplier, Notification
+from .forms import LocationForm, FrequencyForm, ProductForm, SupplierForm, AgentSuppForm, NotificationForm
 from login.models import Agent, Customer
 from agent.models import AgentSupp
-from customer.models import CustomerOrder, OrderCart, MonthlyPayment
+from customer.models import CustomerOrder, OrderCart, MonthlyPayment, Complaint
 
 def dashboard(request):
     # return HttpResponse("Welcome to Admin Panel")
@@ -222,3 +222,49 @@ def admin_payment_report(request):
         'grand_monthly': grand_monthly,
         'grand_total': grand_total,
     })
+
+
+# ─────────────────────────────────────────────────────────────
+# NEW: Admin Complaints — view all complaints + reply
+# ─────────────────────────────────────────────────────────────
+def admin_complaints(request):
+    complaints = Complaint.objects.all().select_related(
+        'customer', 'agent'
+    ).order_by('-comp_date')
+    return render(request, 'admin_complaints.html', {
+        'complaints': complaints
+    })
+
+
+def admin_complaint_reply(request, complaint_id):
+    complaint = get_object_or_404(Complaint, id=complaint_id)
+    if request.method == 'POST':
+        complaint.comp_reply = request.POST.get('comp_reply', '')[:50]
+        complaint.comp_status = request.POST.get('comp_status', 'Pending')
+        complaint.save()
+    return redirect('admin_complaints')
+
+
+# ─────────────────────────────────────────────────────────────
+# NEW: Admin Notifications — CRUD
+# ─────────────────────────────────────────────────────────────
+def notification_list_create_update(request, id=None):
+    obj = get_object_or_404(Notification, id=id) if id else None
+    form = NotificationForm(request.POST or None, instance=obj)
+
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        return redirect('notification_list')
+
+    data = Notification.objects.all().select_related('agent')
+
+    return render(request, 'notification_list_form.html', {
+        'form': form,
+        'data': data
+    })
+
+
+def notification_delete(request, id):
+    obj = get_object_or_404(Notification, id=id)
+    obj.delete()
+    return redirect('notification_list')

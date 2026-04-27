@@ -1,0 +1,102 @@
+{% extends 'adminheader.html' %}
+{% block content %}
+
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow-sm border-0 h-100" style="border-radius: 15px;">
+                <div class="card-body p-4">
+                    <h4 class="mb-4 fw-bold text-primary">
+                        {% if form.instance.id %}Edit{% else %}Add{% endif %} Notification
+                    </h4>
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold text-muted">Message</label>
+                            {{ form.message }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold text-muted">Target Agent <small class="text-muted">(leave blank for all users)</small></label>
+                            {{ form.agent }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold text-muted">Status</label>
+                            {{ form.status }}
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-lg w-100 shadow-0 py-3" style="border-radius: 10px;">
+                            Save Notification
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8 mb-4">
+            <div class="card shadow-sm border-0 h-100" style="border-radius: 15px;">
+                <div class="card-body p-4">
+                    <h4 class="mb-4 fw-bold text-dark">All Notifications</h4>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="border-0 text-muted py-3">ID</th>
+                                    <th class="border-0 text-muted py-3">Message</th>
+                                    <th class="border-0 text-muted py-3">Agent</th>
+                                    <th class="border-0 text-muted py-3">Date</th>
+                                    <th class="border-0 text-muted py-3">Status</th>
+                                    <th class="border-0 text-muted py-3 text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for n in data %}
+                                <tr>
+                                    <td class="py-3 text-muted">#{{ n.id }}</td>
+                                    <td class="py-3"><span class="fw-bold text-dark">{{ n.message }}</span></td>
+                                    <td class="py-3 text-muted">{{ n.agent.name|default:"All Users" }}</td>
+                                    <td class="py-3 text-muted">{{ n.notification_date|date:"Y-m-d" }}</td>
+                                    <td class="py-3">
+                                        <span class="badge {% if n.status == 'Active' %}bg-success{% else %}bg-secondary{% endif %}">{{ n.status }}</span>
+                                    </td>
+                                    <td class="py-3 text-center">
+                                        <div class="d-flex justify-content-center gap-2">
+                                            <a href="{% url 'notification_edit' n.id %}" class="btn btn-sm btn-outline-primary">Edit</a>
+                                            <a href="{% url 'notification_delete' n.id %}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this notification?')">Delete</a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-5 text-muted">No notifications added yet.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    input, select {
+        display: block;
+        width: 100%;
+        padding: 0.6rem 1rem;
+        font-size: 1rem;
+        font-weight: 400;
+        line-height: 1.5;
+        color: #212529;
+        background-color: #fff;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+    }
+    input:focus, select:focus {
+        border-color: #1266f1;
+        outline: 0;
+        box-shadow: 0 0 0 0.25rem rgba(18, 102, 241, 0.25);
+    }
+</style>
+{% endblock %}
+

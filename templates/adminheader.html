@@ -266,6 +266,14 @@
             <div class="si"><i class="fa fa-file-invoice"></i></div>
             <span class="sl">Payment Report</span>
         </a>
+        <a href="{% url 'admin_complaints' %}" class="sb-link">
+            <div class="si"><i class="fa fa-triangle-exclamation"></i></div>
+            <span class="sl">Complaints</span>
+        </a>
+        <a href="{% url 'notification_list' %}" class="sb-link">
+            <div class="si"><i class="fa fa-bell"></i></div>
+            <span class="sl">Notifications</span>
+        </a>
 
     </div>
 
@@ -298,18 +306,32 @@
             <!-- Notifications -->
             <div class="dd-wrap">
                 <button class="ib" onclick="toggleDd('dd-notif')">
-                    <i class="fa fa-bell"></i><span class="dot"></span>
+                    <i class="fa fa-bell"></i>
+                    {% if user_notifications %}<span class="dot"></span>{% endif %}
                 </button>
                 <div class="dd notif-dd" id="dd-notif">
-                    <div class="dd-head">Notifications <a href="#">Mark all read</a></div>
+                    <div class="dd-head">Notifications</div>
                     <div class="notif-list">
                         {% block notifications %}
-                        <div class="notif-row"><div class="ndot r"></div><div><div class="ntext">Low stock — Mangalam</div><div class="ntime">2 hours ago</div></div></div>
-                        <div class="notif-row"><div class="ndot a"></div><div><div class="ntext">New complaint — Suma George</div><div class="ntime">4 hours ago</div></div></div>
-                        <div class="notif-row"><div class="ndot g"></div><div><div class="ntext">Agent Rajesh K. activated</div><div class="ntime">Yesterday</div></div></div>
+                        {% for n in user_notifications %}
+                        <div class="notif-row">
+                            <div class="ndot g"></div>
+                            <div>
+                                <div class="ntext">{{ n.message }}</div>
+                                <div class="ntime">{{ n.notification_date|date:"M d, Y" }}{% if n.agent %} — {{ n.agent.name }}{% endif %}</div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="notif-row">
+                            <div class="ndot g"></div>
+                            <div>
+                                <div class="ntext">No new notifications</div>
+                                <div class="ntime">You're all caught up</div>
+                            </div>
+                        </div>
+                        {% endfor %}
                         {% endblock %}
                     </div>
-                    <div class="dd-foot"><a href="#">View all notifications</a></div>
                 </div>
             </div>
 

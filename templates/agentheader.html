@@ -17,9 +17,6 @@
 
 {% block breadcrumb %}Dashboard{% endblock %}
 
-{% block notifications %}
-{% endblock %}
-
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -79,7 +76,7 @@ document.addEventListener('DOMContentLoaded', function () {
             <a href="{% url 'agent_delivery_list' %}?filter=all" class="sb-link">All Orders</a>
             <a href="{% url 'agent_delivery_list' %}?filter=paused" class="sb-link">Paused (Unpaid)</a>
             <a href="#" class="sb-link">Customer Holidays</a>
-            <a href="#" class="sb-link">Complaints</a>
+            <a href="{% url 'agent_complaints' %}" class="sb-link">Complaints</a>
         </div>
 
         <div class="sb-section">Publications</div>

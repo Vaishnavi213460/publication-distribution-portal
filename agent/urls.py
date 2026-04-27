@@ -17,4 +17,7 @@ urlpatterns = [
 
     # ── Payment report ───────────────────────────────────────
     path('payment-report/', views.agent_payment_report, name='agent_payment_report'),
+
+    # ── Complaints ───────────────────────────────────────────
+    path('complaints/', views.agent_complaints, name='agent_complaints'),
 ]

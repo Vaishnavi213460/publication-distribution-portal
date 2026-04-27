@@ -37,5 +37,14 @@ urlpatterns = [
     # Payment Report
     path('payment-report/', views.admin_payment_report, name='admin_payment_report'),
 
+    # Complaints
+    path('complaints/', views.admin_complaints, name='admin_complaints'),
+    path('complaints/reply/<int:complaint_id>/', views.admin_complaint_reply, name='admin_complaint_reply'),
+
+    # Notifications
+    path('notification/', views.notification_list_create_update, name='notification_list'),
+    path('notification/edit/<int:id>/', views.notification_list_create_update, name='notification_edit'),
+    path('notification/delete/<int:id>/', views.notification_delete, name='notification_delete'),
+
 ]
 

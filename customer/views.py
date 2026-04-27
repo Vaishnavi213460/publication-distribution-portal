@@ -5,7 +5,8 @@ from admin_panel.models import Location, Supplier, Product, Frequency
 from agent.models import AgentSupp
 from login.models import Agent
 from django.db.models import Sum
-from .models import CustomerOrder, OrderCart, ShippingDetails, MonthlyPayment
+from .models import CustomerOrder, OrderCart, ShippingDetails, MonthlyPayment, Complaint
+from .forms import ComplaintForm
 from .frequency_utils import frequencies_for_product, label_to_months
 from datetime import date, timedelta
 import traceback
@@ -427,6 +428,36 @@ def confirm_payment(request):
 # ────────────────────────────────────────────────────────────
 def order_success(request):
     return render(request, 'order_success.html')
+
+# ────────────────────────────────────────────────────────────
+# Complaints
+# ────────────────────────────────────────────────────────────
+from django.contrib.auth.decorators import login_required
+
+
+@login_required
+def add_complaint(request):
+    if request.method == 'POST':
+        form = ComplaintForm(request.POST)
+        if form.is_valid():
+            complaint = form.save(commit=False)
+            complaint.customer = request.user
+            complaint.save()
+            return redirect('my_complaints')
+    else:
+        form = ComplaintForm()
+    return render(request, 'customer_add_complaint.html', {'form': form})
+
+
+@login_required
+def my_complaints(request):
+    complaints = Complaint.objects.filter(
+        customer=request.user
+    ).select_related('agent').order_by('-comp_date')
+    return render(request, 'customer_my_complaints.html', {
+        'complaints': complaints
+    })
+
 
 # ────────────────────────────────────────────────────────────
 # Monthly Payments (imported from views_monthly.py)
