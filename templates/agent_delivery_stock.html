@@ -1,0 +1,222 @@
+{% extends 'agentheader.html' %}
+{% load static %}
+
+{% block title %}Delivery Rounds & Stock — Agent Portal{% endblock %}
+{% block breadcrumb %}Delivery Rounds & Stock{% endblock %}
+
+{% block content %}
+<style>
+/* ── Section titles ── */
+.sec-title{font-size:16px;font-weight:600;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.sec-title i{color:var(--accent);font-size:15px}
+
+/* ── Cards ── */
+.form-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px 22px;box-shadow:var(--shadow);margin-bottom:24px}
+.form-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+.fg{display:flex;flex-direction:column;gap:5px}
+.fg label{font-size:12px;font-weight:500;color:var(--text-2);text-transform:uppercase;letter-spacing:.04em}
+.fg input, .fg select{height:38px;border:1px solid var(--border);border-radius:8px;padding:0 12px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--text);background:#fff;outline:none}
+.fg input:focus, .fg select:focus{border-color:var(--accent)}
+
+.btn-save{display:inline-flex;align-items:center;gap:6px;padding:8px 18px;border-radius:8px;font-size:13px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;border:none;transition:opacity .15s,transform .1s;background:var(--accent);color:#fff;margin-top:10px}
+.btn-save:hover{opacity:.9}
+.btn-save:active{transform:scale(.97)}
+
+/* ── Tables ── */
+.data-card{background:var(--card);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);overflow:hidden;margin-bottom:24px}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{background:var(--bg);padding:10px 14px;text-align:left;font-weight:600;color:var(--text-2);font-size:11px;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--border)}
+.tbl td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text)}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:rgba(15,118,110,.03)}
+
+.act-link{color:var(--accent);font-weight:500;text-decoration:none;font-size:12px;margin-right:10px}
+.act-link:hover{text-decoration:underline}
+.act-del{color:#ef4444;font-weight:500;text-decoration:none;font-size:12px}
+.act-del:hover{text-decoration:underline}
+
+/* Chips */
+.chip{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500;background:var(--bg);border:1px solid var(--border);color:var(--text-2)}
+.chip.stock{background:#CCFBF1;border-color:#5eead4;color:#0F766E}
+
+/* Empty state */
+.empty{text-align:center;padding:40px 20px}
+.empty-icon{width:48px;height:48px;border-radius:50%;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:18px;color:#94a3b8}
+
+/* Sub-header for stock inside a round */
+.round-stocks{padding:8px 14px 14px 14px;background:var(--bg)}
+.stock-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+.stock-item{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:12px}
+.stock-item strong{color:var(--text);font-size:13px}
+.stock-item .meta{color:var(--text-2);margin-top:4px}
+</style>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- DELIVERY ROUNDS                                         -->
+<!-- ═══════════════════════════════════════════════════════ -->
+
+<div class="sec-title"><i class="fa fa-route"></i> Delivery Round {% if round_instance %}— Editing #{{ round_instance.id }}{% else %}— Add New{% endif %}</div>
+
+<div class="form-card">
+    <form method="POST">
+        {% csrf_token %}
+        <div class="form-row">
+            <div class="fg">
+                <label for="{{ round_form.start_place.id_for_label }}">Start Place</label>
+                {{ round_form.start_place }}
+                {% if round_form.start_place.errors %}
+                    <small style="color:#ef4444">{{ round_form.start_place.errors.0 }}</small>
+                {% endif %}
+            </div>
+            <div class="fg">
+                <label for="{{ round_form.end_place.id_for_label }}">End Place</label>
+                {{ round_form.end_place }}
+                {% if round_form.end_place.errors %}
+                    <small style="color:#ef4444">{{ round_form.end_place.errors.0 }}</small>
+                {% endif %}
+            </div>
+        </div>
+        <button type="submit" name="save_round" class="btn-save">
+            <i class="fa fa-floppy-disk"></i> {% if round_instance %}Update Round{% else %}Save Round{% endif %}
+        </button>
+        {% if round_instance %}
+        <a href="{% url 'agent_delivery_rounds' %}" class="act-link" style="margin-left:10px">Cancel</a>
+        {% endif %}
+    </form>
+</div>
+
+<div class="sec-title"><i class="fa fa-list"></i> My Delivery Rounds</div>
+
+<div class="data-card">
+    {% if rounds %}
+    <table class="tbl">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Start Place</th>
+                <th>End Place</th>
+                <th>Stocks</th>
+                <th style="text-align:right">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for round in rounds %}
+            <tr>
+                <td><strong>#{{ round.id }}</strong></td>
+                <td>{{ round.start_place }}</td>
+                <td>{{ round.end_place }}</td>
+                <td>
+                    {% with round.stocks.all as s %}
+                        {% if s %}
+                            {% for stock in s %}
+                            <span class="chip stock">{{ stock.product.name }} ×{{ stock.no_of_copies }}</span>
+                            {% endfor %}
+                        {% else %}
+                            <span class="chip">No stocks</span>
+                        {% endif %}
+                    {% endwith %}
+                </td>
+                <td style="text-align:right">
+                    <a href="?round_id={{ round.id }}" class="act-link"><i class="fa fa-pen"></i> Edit</a>
+                    <a href="{% url 'delivery_round_delete' round.id %}" class="act-del" onclick="return confirm('Delete this round and all its stocks?')">
+                        <i class="fa fa-trash"></i> Delete
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty">
+        <div class="empty-icon"><i class="fa fa-route"></i></div>
+        <div style="font-weight:600;color:var(--text)">No delivery rounds yet</div>
+        <div style="font-size:12px;color:var(--text-2);margin-top:4px">Add your first round using the form above.</div>
+    </div>
+    {% endif %}
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- DELIVERY STOCKS                                         -->
+<!-- ═══════════════════════════════════════════════════════ -->
+
+<div class="sec-title"><i class="fa fa-boxes-stacked"></i> Delivery Stock {% if stock_instance %}— Editing #{{ stock_instance.id }}{% else %}— Add New{% endif %}</div>
+
+<div class="form-card">
+    <form method="POST">
+        {% csrf_token %}
+        <div class="form-row">
+            <div class="fg">
+                <label for="{{ stock_form.delivery_round.id_for_label }}">Delivery Round</label>
+                {{ stock_form.delivery_round }}
+                {% if stock_form.delivery_round.errors %}
+                    <small style="color:#ef4444">{{ stock_form.delivery_round.errors.0 }}</small>
+                {% endif %}
+            </div>
+            <div class="fg">
+                <label for="{{ stock_form.product.id_for_label }}">Product</label>
+                {{ stock_form.product }}
+                {% if stock_form.product.errors %}
+                    <small style="color:#ef4444">{{ stock_form.product.errors.0 }}</small>
+                {% endif %}
+            </div>
+            <div class="fg">
+                <label for="{{ stock_form.no_of_copies.id_for_label }}">Number of Copies</label>
+                {{ stock_form.no_of_copies }}
+                {% if stock_form.no_of_copies.errors %}
+                    <small style="color:#ef4444">{{ stock_form.no_of_copies.errors.0 }}</small>
+                {% endif %}
+            </div>
+        </div>
+        <button type="submit" name="save_stock" class="btn-save">
+            <i class="fa fa-floppy-disk"></i> {% if stock_instance %}Update Stock{% else %}Save Stock{% endif %}
+        </button>
+        {% if stock_instance %}
+        <a href="{% url 'agent_delivery_rounds' %}" class="act-link" style="margin-left:10px">Cancel</a>
+        {% endif %}
+    </form>
+</div>
+
+<div class="sec-title"><i class="fa fa-warehouse"></i> My Delivery Stocks</div>
+
+<div class="data-card">
+    {% if stocks %}
+    <table class="tbl">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Round</th>
+                <th>Route</th>
+                <th>Product</th>
+                <th>Copies</th>
+                <th style="text-align:right">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for stock in stocks %}
+            <tr>
+                <td><strong>#{{ stock.id }}</strong></td>
+                <td>Round #{{ stock.delivery_round.id }}</td>
+                <td>{{ stock.delivery_round.start_place }} → {{ stock.delivery_round.end_place }}</td>
+                <td>{{ stock.product.name }}</td>
+                <td><span class="chip stock">{{ stock.no_of_copies }}</span></td>
+                <td style="text-align:right">
+                    <a href="?stock_id={{ stock.id }}" class="act-link"><i class="fa fa-pen"></i> Edit</a>
+                    <a href="{% url 'delivery_stock_delete' stock.id %}" class="act-del" onclick="return confirm('Delete this stock entry?')">
+                        <i class="fa fa-trash"></i> Delete
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty">
+        <div class="empty-icon"><i class="fa fa-boxes-stacked"></i></div>
+        <div style="font-weight:600;color:var(--text)">No delivery stocks yet</div>
+        <div style="font-size:12px;color:var(--text-2);margin-top:4px">Add stock to a delivery round using the form above.</div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+

@@ -20,4 +20,9 @@ urlpatterns = [
 
     # ── Complaints ───────────────────────────────────────────
     path('complaints/', views.agent_complaints, name='agent_complaints'),
+
+    # ── Delivery Rounds & Stock ──────────────────────────────
+    path('delivery-rounds/', views.agent_delivery_rounds, name='agent_delivery_rounds'),
+    path('delivery-rounds/<int:id>/delete/', views.delivery_round_delete, name='delivery_round_delete'),
+    path('delivery-stocks/<int:id>/delete/', views.delivery_stock_delete, name='delivery_stock_delete'),
 ]

@@ -51,8 +51,7 @@ document.addEventListener('DOMContentLoaded', function () {
             <i class="fa fa-chevron-right sa"></i>
         </button>
         <div class="sb-sub-menu" id="sub-rounds">
-            <a href="#" class="sb-link">Add Delivery Round</a>
-            <a href="#" class="sb-link">View Delivery Rounds</a>
+            <a href="{% url 'agent_delivery_rounds' %}" class="sb-link">Add / View Rounds</a>
         </div>
 
         <button class="sb-link" onclick="toggleSub('sub-stock', this)">
@@ -61,8 +60,8 @@ document.addEventListener('DOMContentLoaded', function () {
             <i class="fa fa-chevron-right sa"></i>
         </button>
         <div class="sb-sub-menu" id="sub-stock">
-            <a href="#" class="sb-link">Manage Delivery Stocks</a>
-            <a href="#" class="sb-link">Manage Agent Stocks</a>
+            <a href="{% url 'agent_delivery_rounds' %}" class="sb-link">Manage Delivery Stocks</a>
+            <a href="{% url 'agent_delivery_rounds' %}" class="sb-link">Manage Agent Stocks</a>
         </div>
 
         <div class="sb-section">Customers</div>

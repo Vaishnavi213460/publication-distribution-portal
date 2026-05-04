@@ -6,8 +6,8 @@ from datetime import date
 
 from admin_panel.models import Frequency, Product, Supplier
 from login.models import Agent
-from .forms import AgentSuppForm
-from .models import AgentSupp
+from .forms import AgentSuppForm, DeliveryRoundForm, DeliveryStockForm
+from .models import AgentSupp, DeliveryRound, DeliveryStock
 
 # Import customer models for delivery tracking
 from customer.models import CustomerOrder, OrderCart, DailyDeliveryLog, MonthlyPayment, Complaint
@@ -371,3 +371,77 @@ def agent_complaints(request):
         'complaints': complaints,
         'agent': agent,
     })
+
+
+# ─────────────────────────────────────────────────────────────
+# NEW: Delivery Rounds & Delivery Stock — combined single template
+# ─────────────────────────────────────────────────────────────
+@login_required
+def agent_delivery_rounds(request):
+    agent = _get_agent(request.user)
+    if not agent:
+        return redirect('login')
+
+    # Determine if we are editing existing records
+    round_id = request.GET.get('round_id')
+    stock_id = request.GET.get('stock_id')
+
+    round_instance = get_object_or_404(DeliveryRound, id=round_id, agent=agent) if round_id else None
+    stock_instance = get_object_or_404(DeliveryStock, id=stock_id, delivery_round__agent=agent) if stock_id else None
+
+    # Delivery Round form
+    if request.method == 'POST' and 'save_round' in request.POST:
+        round_form = DeliveryRoundForm(request.POST, instance=round_instance)
+        if round_form.is_valid():
+            obj = round_form.save(commit=False)
+            obj.agent = agent
+            obj.save()
+            return redirect('agent_delivery_rounds')
+    else:
+        round_form = DeliveryRoundForm(instance=round_instance)
+
+    # Delivery Stock form
+    if request.method == 'POST' and 'save_stock' in request.POST:
+        stock_form = DeliveryStockForm(request.POST, instance=stock_instance)
+        if stock_form.is_valid():
+            # Ensure the selected round belongs to this agent
+            selected_round = stock_form.cleaned_data.get('delivery_round')
+            if selected_round and selected_round.agent_id == agent.id:
+                stock_form.save()
+                return redirect('agent_delivery_rounds')
+            else:
+                stock_form.add_error('delivery_round', 'Invalid delivery round selected.')
+    else:
+        stock_form = DeliveryStockForm(instance=stock_instance)
+        # Limit delivery_round choices to this agent's rounds
+        stock_form.fields['delivery_round'].queryset = DeliveryRound.objects.filter(agent=agent)
+
+    # Data for tables
+    rounds = DeliveryRound.objects.filter(agent=agent).prefetch_related('stocks__product')
+    stocks = DeliveryStock.objects.filter(delivery_round__agent=agent).select_related('delivery_round', 'product')
+
+    return render(request, 'agent_delivery_stock.html', {
+        'round_form': round_form,
+        'stock_form': stock_form,
+        'rounds': rounds,
+        'stocks': stocks,
+        'round_instance': round_instance,
+        'stock_instance': stock_instance,
+        'agent': agent,
+    })
+
+
+@login_required
+def delivery_round_delete(request, id):
+    agent = _get_agent(request.user)
+    obj = get_object_or_404(DeliveryRound, id=id, agent=agent)
+    obj.delete()
+    return redirect('agent_delivery_rounds')
+
+
+@login_required
+def delivery_stock_delete(request, id):
+    agent = _get_agent(request.user)
+    obj = get_object_or_404(DeliveryStock, id=id, delivery_round__agent=agent)
+    obj.delete()
+    return redirect('agent_delivery_rounds')
