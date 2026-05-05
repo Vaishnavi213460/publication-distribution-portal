@@ -18,4 +18,8 @@ urlpatterns = [
     path('pay-monthly/<int:payment_id>/', views.pay_monthly_redirect, name='pay_monthly_payment'),
     path('complaint/add/', views.add_complaint, name='add_complaint'),
     path('complaint/my/', views.my_complaints, name='my_complaints'),
+    path('delivery-rounds/', views.customer_delivery_rounds, name='customer_delivery_rounds'),
+    path('bills/', views.customer_bills, name='customer_bills'),
+    path('cancel-order/', views.cancel_order, name='cancel_order'),
 ]
+

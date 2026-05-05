@@ -21,3 +21,18 @@ class ComplaintForm(forms.ModelForm):
             }),
         }
 
+
+class CancelOrderForm(forms.Form):
+    order_id = forms.IntegerField(
+        widget=forms.HiddenInput()
+    )
+    cancel_reason = forms.CharField(
+        max_length=200,
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'rows': 3,
+            'placeholder': 'Why do you want to cancel this order? (optional)',
+        }),
+        required=False
+    )
+

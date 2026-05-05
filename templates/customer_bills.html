@@ -1,0 +1,119 @@
+{% extends 'customerheader.html' %}
+{% load static %}
+
+{% block title %}My Bills — Customer Portal{% endblock %}
+{% block breadcrumb %}My Bills{% endblock %}
+
+{% block content %}
+<style>
+.bills-hero {
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    border-radius: 14px;
+    padding: 32px 40px;
+    margin-bottom: 32px;
+    color: white;
+}
+.bills-hero h1 { font-size: 24px; font-weight: 600; margin: 0 0 8px 0; }
+.bills-hero p { font-size: 14px; opacity: 0.9; margin: 0; }
+
+.bills-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px; margin-bottom: 32px; }
+.bill-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.bill-card:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
+.bill-header {
+    padding: 20px 24px;
+    background: linear-gradient(135deg, var(--accent-light), #fef2f2);
+    border-bottom: 1px solid var(--border);
+}
+.bill-title { font-size: 16px; font-weight: 600; color: var(--text); margin: 0 0 4px 0; }
+.bill-meta { font-size: 12px; color: var(--text-2); }
+.bill-body { padding: 24px; }
+.bill-amount { font-size: 28px; font-weight: 700; color: var(--accent); margin-bottom: 12px; }
+.bill-status {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600;
+}
+.status-paid { background: #dcfce7; color: #166534; }
+.status-pending { background: #fef3c7; color: #d97706; }
+.status-overdue { background: #fee2e2; color: #dc2626; }
+.bill-actions { margin-top: 20px; }
+.btn-pay { background: var(--accent); color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; }
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin-top: 32px; }
+.stat-card { text-align: center; padding: 24px; background: var(--card); border-radius: 14px; border: 1px solid var(--border); }
+.stat-number { font-size: 32px; font-weight: 700; color: var(--accent); }
+.stat-label { font-size: 13px; color: var(--text-2); margin-top: 4px; }
+</style>
+
+<div class="bills-hero">
+    <h1>Your Bills & Payments</h1>
+    <p>View all outstanding bills, payment history, and pay monthly installments.</p>
+</div>
+
+<!-- Stats Overview -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-number">{{ total_pending|floatformat:0 }}₹</div>
+        <div class="stat-label">Pending Bills</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number">{{ total_paid|floatformat:0 }}₹</div>
+        <div class="stat-label">Paid This Month</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number">{{ bills_due_count }}</div>
+        <div class="stat-label">Bills Due Soon</div>
+    </div>
+</div>
+
+<!-- Bills List -->
+<div class="section-header" style="margin-bottom: 24px;">
+    <h2 style="font-size: 20px; font-weight: 600; margin: 0;">Recent Bills</h2>
+</div>
+
+{% if bills %}
+<div class="bills-grid">
+    {% for bill in bills %}
+    <div class="bill-card">
+        <div class="bill-header">
+            <div class="bill-title">{{ bill.order_item.product.name }} — {{ bill.month_year|date:"M Y" }}</div>
+            <div class="bill-meta">{{ bill.order_item.order.customer.username }} • {{ bill.order_item.qty }} copies</div>
+        </div>
+        <div class="bill-body">
+            <div class="bill-amount">{{ bill.amount|floatformat:0 }}₹</div>
+            <span class="bill-status status-{{ bill.status|lower }}">
+                <i class="fa fa-circle" style="font-size: 8px;"></i>
+                {{ bill.get_status_display }}
+            </span>
+            {% if bill.status == 'pending' %}
+            <div class="bill-actions">
+                <a href="{% url 'pay_monthly_payment' bill.id %}" class="btn-pay">
+                    <i class="fa fa-credit-card"></i> Pay Now
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+<a href="{% url 'monthly_payments' %}" class="btn-sec" style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; border: 1px solid var(--border); border-radius: 8px; text-decoration: none; font-weight: 500; margin-top: 20px;">
+    <i class="fa fa-list"></i> View All Payments
+</a>
+{% else %}
+<div class="empty-state">
+    <div style="font-size: 48px; color: #d1d5db; margin-bottom: 16px;"><i class="fa fa-file-invoice"></i></div>
+    <h3>No bills yet</h3>
+    <p>You don't have any outstanding bills. Great job staying current!</p>
+    <a href="{% url 'customer_shop' %}" class="btn-primary" style="margin-top: 20px;">
+        Continue Shopping
+    </a>
+</div>
+{% endif %}
+
+{% endblock %}
+

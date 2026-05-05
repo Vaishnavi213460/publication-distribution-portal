@@ -1,0 +1,127 @@
+{% extends 'customerheader.html' %}
+{% load static %}
+
+{% block title %}Cancel Order — Customer Portal{% endblock %}
+{% block breadcrumb %}Cancel Order{% endblock %}
+
+{% block content %}
+<style>
+.order-list { margin-bottom: 32px; }
+.order-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.order-cancellable { border-left: 4px solid var(--accent); }
+.order-details { flex: 1; }
+.order-id { font-size: 14px; color: var(--text-2); margin-bottom: 4px; }
+.order-summary { font-size: 16px; font-weight: 600; color: var(--text); }
+.order-total { font-size: 18px; font-weight: 600; color: var(--accent); }
+.cancel-btn {
+    background: #fee2e2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.cancel-btn:hover { background: #fecaca; transform: translateY(-1px); }
+.form-section { background: var(--card); border-radius: 14px; padding: 32px; box-shadow: var(--shadow); }
+.form-section h3 { margin-top: 0; }
+.success-msg { background: #dcfce7; color: #166534; padding: 16px 24px; border-radius: 8px; border-left: 4px solid #22c55e; margin-bottom: 24px; }
+</style>
+
+{% if messages %}
+    {% for message in messages %}
+    <div class="success-msg">
+        <i class="fa fa-check-circle" style="margin-right: 8px;"></i>
+        {{ message }}
+    </div>
+    {% endfor %}
+{% endif %}
+
+<h1>Cancel Orders</h1>
+<p>Review and cancel active orders or cart items. Cancellations are permanent.</p>
+
+<div class="order-list">
+    {% if cancellable_orders %}
+        {% for order in cancellable_orders %}
+        <div class="order-card order-cancellable">
+            <div class="order-details">
+                <div class="order-id">Order #{{ order.id }} • {{ order.order_date|date:"M d, Y" }}</div>
+                <div class="order-summary">
+                    {% for item in order.items.all|slice:":2" %}{{ item.product.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                    {% if order.items.count > 2 %}+{{ order.items.count|add:"-2" }} more{% endif %}
+                </div>
+            </div>
+            <div style="display: flex; gap: 12px; align-items: center;">
+                <div class="order-total">{{ order.get_total|floatformat:0 }}₹</div>
+                <button class="cancel-btn" onclick="showCancelForm('{{ order.id }}', '{{ order.get_total|floatformat:0 }}₹')">
+                    <i class="fa fa-times"></i> Cancel Order
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div style="text-align: center; padding: 60px 40px; color: var(--text-2);">
+            <i class="fa fa-shopping-cart" style="font-size: 48px; color: #d1d5db; margin-bottom: 16px;"></i>
+            <h3>No cancellable orders</h3>
+            <p>All your orders are either completed, cancelled, or no longer eligible for cancellation.</p>
+            <a href="{% url 'cart' %}" class="btn-sec" style="margin-top: 20px;">View Cart</a>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Cancel Form Modal (hidden by default) -->
+<div id="cancel-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; backdrop-filter: blur(4px);">
+    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 14px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;">
+        <div class="form-section">
+            <h3>Confirm Cancellation</h3>
+            <p id="cancel-order-info" style="background: #f8fafc; padding: 16px; border-radius: 8px; margin-bottom: 24px;"></p>
+            <form method="post" id="cancel-form">
+                {% csrf_token %}
+                <input type="hidden" name="order_id" id="form-order-id">
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label>Reason for cancellation (optional):</label>
+                    {{ form.cancel_reason }}
+                </div>
+                <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                    <button type="button" onclick="hideCancelForm()" class="btn-sec" style="padding: 12px 24px; border: 1px solid var(--border); background: white; border-radius: 8px;">Cancel</button>
+                    <button type="submit" class="cancel-btn" style="padding: 12px 24px;">Confirm Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function showCancelForm(orderId, total) {
+    document.getElementById('cancel-order-info').innerHTML = `
+        <strong>Order #${orderId}</strong><br>
+        Total: <strong>${total}</strong><br>
+        <small style="color: var(--text-2);">This action cannot be undone.</small>
+    `;
+    document.getElementById('form-order-id').value = orderId;
+    document.getElementById('cancel-modal').style.display = 'block';
+}
+
+function hideCancelForm() {
+    document.getElementById('cancel-modal').style.display = 'none';
+}
+
+document.getElementById('cancel-form').addEventListener('submit', function(e) {
+    if (!confirm('Are you sure you want to cancel this order?')) {
+        e.preventDefault();
+    }
+});
+</script>
+
+{% endblock %}
+

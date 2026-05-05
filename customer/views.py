@@ -1,13 +1,17 @@
 import json
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from admin_panel.models import Location, Supplier, Product, Frequency
-from agent.models import AgentSupp
-from login.models import Agent
-from django.db.models import Sum
+from agent.models import AgentSupp, DeliveryRound, DeliveryStock
+from login.models import Agent, Customer
+from django.db.models import Q
+from django.db.models import Sum, Count
 from .models import CustomerOrder, OrderCart, ShippingDetails, MonthlyPayment, Complaint
-from .forms import ComplaintForm
+from .forms import ComplaintForm, CancelOrderForm
 from .frequency_utils import frequencies_for_product, label_to_months
+from .views_monthly import monthly_payments_view, pay_monthly_redirect
 from datetime import date, timedelta
 import traceback
 from dateutil.relativedelta import relativedelta   # pip install python-dateutil
@@ -21,7 +25,7 @@ def customer_dashboard(request):
 
 
 # ────────────────────────────────────────────────────────────
-# Shop — location → agents
+# Shop — location → agents (search agents - already exists)
 # ────────────────────────────────────────────────────────────
 def customer_shop(request):
     context = {'list': Location.objects.all()}
@@ -59,7 +63,7 @@ def customer_agent_products(request, agent_id):
 
 
 # ────────────────────────────────────────────────────────────
-# Product detail  ← key change: builds frequencies_json from DB
+# Product detail
 # ────────────────────────────────────────────────────────────
 def product_detail(request, product_id, agent_id):
     product = get_object_or_404(
@@ -87,7 +91,7 @@ def supplier_list(request, agent_id):
 
 
 # ────────────────────────────────────────────────────────────
-# Add to cart  — accepts frequency_id (FK) + frequency_months
+# Add to cart
 # ────────────────────────────────────────────────────────────
 def add_to_cart(request):
     if not request.user.is_authenticated:
@@ -364,6 +368,7 @@ def confirm_payment(request):
         payment.save()
         
         # Clear session
+        
         request.session.pop('monthly_payment_id', None)
         request.session.pop('monthly_amount', None)
         request.session.pop('payment_title', None)
@@ -463,3 +468,80 @@ def my_complaints(request):
 # Monthly Payments (imported from views_monthly.py)
 # ────────────────────────────────────────────────────────────
 from .views_monthly import monthly_payments_view, pay_monthly_redirect
+
+
+# ────────────────────────────────────────────────────────────
+# NEW FEATURES
+# ────────────────────────────────────────────────────────────
+
+@login_required
+def customer_delivery_rounds(request):
+    customer_agents_ids = CustomerOrder.objects.filter(
+        customer=request.user
+    ).values_list('items__product__supplier__agentsupp__agent', flat=True).distinct()
+
+    # Fetch all rounds in one query with prefetch
+    rounds = DeliveryRound.objects.filter(
+        agent__id__in=customer_agents_ids
+    ).select_related('agent').prefetch_related('stocks__product')
+
+    # Annotate customer order counts per round
+    for rnd in rounds:
+        rnd.customer_orders = OrderCart.objects.filter(
+            order__customer=request.user,
+            product__in=rnd.stocks.values('product')
+        ).count()
+
+    return render(request, 'customer_delivery_rounds.html', {'rounds': rounds})
+
+@login_required
+def customer_bills(request):
+    """View customer's bills (MonthlyPayment records)"""
+    bills = MonthlyPayment.objects.filter(
+        order_item__order__customer=request.user
+    ).select_related('order_item__product', 'order_item__order').order_by('-month_year')
+    
+    # Stats
+    total_pending = bills.filter(status='pending').aggregate(Sum('amount'))['amount__sum'] or 0
+    total_paid = bills.filter(status='paid').aggregate(Sum('amount'))['amount__sum'] or 0
+    bills_due_count = bills.filter(status='pending').count()
+    
+    context = {
+        'bills': bills[:10],  # Recent 10
+        'total_pending': total_pending,
+        'total_paid': total_paid,
+        'bills_due_count': bills_due_count,
+    }
+    return render(request, 'customer_bills.html', context)
+
+
+@login_required
+def cancel_order(request):
+    """Cancel customer orders/cart"""
+    cancellable_orders = CustomerOrder.objects.filter(
+        customer=request.user,
+        status__in=['cart', 'order_confirmed', 'payment_received']
+    ).prefetch_related('items__product').order_by('-order_date')
+    
+    if request.method == 'POST':
+        form = CancelOrderForm(request.POST)
+        if form.is_valid():
+            order_id = form.cleaned_data['order_id']
+            order = get_object_or_404(CustomerOrder, id=order_id, customer=request.user)
+            if order.status in ['cart', 'order_confirmed', 'payment_received']:
+                reason = form.cleaned_data.get('cancel_reason', 'No reason provided')
+                order.status = 'cancelled'
+                order.save()
+                order.items.update(status='cancelled')
+                # Mark pending monthly payments as cancelled if any
+                order.items.filter(monthly_payments__status='pending').monthly_payments.update(status='cancelled')
+                messages.success(request, f'Order #{order.id} has been cancelled. Reason: {reason[:50]}...')
+                return redirect('cancel_order')
+        messages.error(request, 'Invalid cancellation request.')
+    
+    form = CancelOrderForm()  # Empty form for template
+    return render(request, 'customer_cancel_order.html', {
+        'cancellable_orders': cancellable_orders,
+        'form': form
+    })
+

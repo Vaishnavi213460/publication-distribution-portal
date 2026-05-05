@@ -1,135 +1,234 @@
-{% extends 'adminheader.html' %}
+<!DOCTYPE html>
 {% load static %}
-{% comment %}
-Customer base extends admin_base. Overrides accent to coral/red, replaces nav with
-customer-oriented links, and injects the cart dropdown into the topbar.
-{% endcomment %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Customer Portal — Publication Distribution{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    {% block extra_css %}
+    <style>
+        :root {
+            --topbar-h: 56px;
+            --bg: #FAF7F5; /* Warm off-white bg */
+            --topbar-bg: #FFFFFF;
+            --text: #2D1B14; /* Warm dark */
+            --text-2: #6B4E3D; /* Muted brown */
+            --border: #E8DCCA; /* Warm border */
+            --shadow: 0 4px 20px rgba(217, 164, 157, 0.15); /* Warm shadow */
+            --radius: 12px;
+            --accent: #DC2626; /* Coral red */
+            --accent-light: #FEE2E2;
+            --card: #FDFAF7;
+        }
+    </style>
+    {% endblock %}
+</head>
+<body style="font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); font-size:14px; line-height:1.5; min-height:100vh;">
 
-{% block title %}Customer Portal — Publication Distribution{% endblock %}
+    <!-- TOPBAR (standalone - no sidebar toggle) -->
+    <header class="topbar" style="height:var(--topbar-h); background:var(--topbar-bg); border-bottom:1px solid var(--border); display:flex; align-items:center; gap:12px; padding:0 24px; position:sticky; top:0; z-index:50; box-shadow:var(--shadow);">
+        <div class="tb-crumb" style="display:flex; align-items:center; gap:6px; font-size:13px; color:var(--text-2);">
+            <span>Customer Portal</span>
+            <i class="fa fa-chevron-right" style="font-size:9px;color:#A99F92;"></i>
+<span class="cur" style="color:var(--text); font-weight:500;">My Account</span>
+        </div>
+        <div class="tb-search" style="flex:1; max-width:400px; margin-left:16px; position:relative;">
+            <i class="fa fa-search" style="position:absolute; left:10px; top:50%; transform:translateY(-50%); color:#A99F92; font-size:13px;"></i>
+            <input type="text" placeholder="Search publications, orders..." style="width:100%; height:34px; border:1px solid var(--border); border-radius:8px; padding:0 12px 0 34px; font-size:13px; font-family:'DM Sans',sans-serif; background:#fff; color:var(--text); outline:none; transition:border-color .15s;" />
+        </div>
+        <div class="tb-actions" style="margin-left:auto; display:flex; align-items:center; gap:8px;">
 
-{% block extra_css %}
-<style>
-    :root {
-        --accent: #DC2626;
-        --accent-light: #FEE2E2;
-    }
-</style>
-{% endblock %}
+            <!-- Notifications -->
+            <div class="dd-wrap" style="position:relative;">
+                <button class="ib" onclick="toggleDd('dd-notif')" style="width:34px; height:34px; border:1px solid var(--border); border-radius:8px; background:none; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text-2); font-size:14px; position:relative; transition:background .12s; border:none;">
+                    <i class="fa fa-bell"></i>
+                    {% if user_notifications %}<span class="dot" style="position:absolute; top:6px; right:6px; width:7px; height:7px; background:#EF4444; border-radius:50%; border:1.5px solid #fff;"></span>{% endif %}
+                </button>
+                <div class="dd notif-dd" id="dd-notif" style="position:absolute; top:calc(100% + 8px); right:0; background:#fff; border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); display:none; z-index:200; width:300px;">
+                    <div class="dd-head" style="padding:12px 16px; border-bottom:1px solid var(--border); font-size:13px; font-weight:600; display:flex; justify-content:space-between; align-items:center;">Notifications</div>
+                    <div class="notif-list" style="max-height:270px; overflow-y:auto;">
+                        {% block notifications %}
+                        {% for n in user_notifications %}
+                        <div class="notif-row" style="padding:10px 16px; border-bottom:1px solid var(--border); display:flex; gap:10px; align-items:flex-start;">
+                            <div class="ndot g" style="width:8px; height:8px; border-radius:50%; flex-shrink:0; margin-top:5px; background:#10B981;"></div>
+                            <div>
+                                <div class="ntext" style="font-size:12.5px;">{{ n.message }}</div>
+                                <div class="ntime" style="font-size:11px; color:var(--text-2); margin-top:2px;">{{ n.notification_date|date:"M d, Y" }}{% if n.agent %} — {{ n.agent.name }}{% endif %}</div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="notif-row" style="padding:10px 16px; border-bottom:1px solid var(--border); display:flex; gap:10px; align-items:flex-start;">
+                            <div class="ndot g" style="width:8px; height:8px; border-radius:50%; flex-shrink:0; margin-top:5px; background:#10B981;"></div>
+                            <div>
+                                <div class="ntext" style="font-size:12.5px;">No new notifications</div>
+                                <div class="ntime" style="font-size:11px; color:var(--text-2); margin-top:2px;">You're all caught up</div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        {% endblock %}
+                    </div>
+                </div>
+            </div>
 
-{% block sidebar_initials %}{{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1"|default:user.username|slice:":1" }}{% endblock %}
-{% block topbar_initials %}{{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1"|default:user.username|slice:":1" }}{% endblock %}
-{% block breadcrumb %}My Dashboard{% endblock %}
+            <!-- Cart (will be injected by JS) -->
 
-{% block extra_js %}
-{# Django data bridge for cart #}
-<div id="django-data"
-     data-authenticated="{{ user.is_authenticated|lower }}"
-     data-cart-url="{% url 'cart_data_api' %}"
-     data-remove-url="{% url 'remove_from_cart' %}"
-     data-csrf="{{ csrf_token }}"
-     style="display:none;"></div>
+            <!-- User menu -->
+            <div class="dd-wrap" style="position:relative;">
+                <button class="user-chip" onclick="toggleDd('dd-user')" style="display:flex; align-items:center; gap:8px; padding:4px 10px 4px 4px; border:1px solid var(--border); border-radius:30px; cursor:pointer; background:none; transition:background .12s;">
+                    <div class="chip-av" style="width:26px; height:26px; border-radius:50%; background:var(--accent); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:600; color:#fff;">{% block topbar_initials %}{{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1"|default:user.username|slice:":1" }}{% endblock %}</div>
+                    <span class="chip-name" style="font-size:12.5px; font-weight:500;">{{ user.get_full_name|default:user.username }}</span>
+                    <i class="fa fa-chevron-down chip-caret" style="font-size:10px; color:var(--text-2);"></i>
+                </button>
+                <div class="dd user-dd" id="dd-user" style="position:absolute; top:calc(100% + 8px); right:0; background:#fff; border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); display:none; z-index:200; width:200px;">
+                    <div class="udd-info" style="padding:12px 14px; border-bottom:1px solid var(--border);">
+                        <div class="un" style="font-size:13px; font-weight:600;">{{ user.get_full_name|default:user.username }}</div>
+                        <div class="ur" style="font-size:11px; color:var(--text-2);">Customer</div>
+                    </div>
+                    <a href="#" style="display:flex; align-items:center; gap:10px; padding:9px 14px; font-size:13px; color:var(--text); text-decoration:none; transition:background .1s;"><i class="fa fa-user" style="width:14px; text-align:center; color:var(--text-2); font-size:13px;"></i>My Profile</a>
+                    <a href="#" style="display:flex; align-items:center; gap:10px; padding:9px 14px; font-size:13px; color:var(--text); text-decoration:none; transition:background .1s;"><i class="fa fa-gear" style="width:14px; text-align:center; color:var(--text-2); font-size:13px;"></i>Settings</a>
+                    <a href="{% url 'login' %}" class="dng" style="display:flex; align-items:center; gap:10px; padding:9px 14px; font-size:13px; color:#DC2626; text-decoration:none; transition:background .1s;"><i class="fa fa-sign-out-alt" style="width:14px; text-align:center; color:#FCA5A5; font-size:13px;"></i>Logout</a>
+                </div>
+            </div>
+        </div>
+    </header>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
+    <!-- Customer Navigation Bar (replaces sidebar) -->
+    <nav class="customer-nav" id="customer-nav" style="background:var(--card); border-bottom:1px solid var(--border); padding:0; box-shadow:var(--shadow);">
+        <div style="display:flex; gap:2px; overflow-x:auto; padding:8px 24px; scrollbar-width:none; -ms-overflow-style:none;">
+            <style> .customer-nav::-webkit-scrollbar {display:none;} </style>
+            <!-- Populated by JS below -->
+        </div>
+    </nav>
 
-    /* ── Rewrite sidebar for customer ── */
-    const scroll = document.querySelector('.sb-scroll');
-    if (scroll) {
-        scroll.innerHTML = `
-            <div class="sb-section">My Portal</div>
-            <a href="/customer/dashboard/" class="sb-link active">
-                <div class="si"><i class="fa fa-gauge-high"></i></div>
-                <span class="sl">Dashboard</span>
-            </a>
-            <div class="sb-section">Publications</div>
-<a href="{% url 'customer_shop' %}" class="sb-link">
-                <div class="si"><i class="fa fa-newspaper"></i></div>
-                <span class="sl">Browse Publications</span>
-            </a>
-            <a href="#" class="sb-link">
-                <div class="si"><i class="fa fa-clock-rotate-left"></i></div>
-                <span class="sl">View Frequencies</span>
-            </a>
-            <a href="#" class="sb-link">
-                <div class="si"><i class="fa fa-store"></i></div>
-                <span class="sl">Product Suppliers</span>
-            </a>
-            <div class="sb-section">Orders</div>
-            <a href="#" class="sb-link">
-                <div class="si"><i class="fa fa-bag-shopping"></i></div>
-                <span class="sl">Order Products</span>
-            </a>
-            <a href="#" class="sb-link">
-                <div class="si"><i class="fa fa-ban"></i></div>
-                <span class="sl">Cancellations</span>
-            </a>
-            <div class="sb-section">Account</div>
-            <a href="{% url 'monthly_payments' %}" class="sb-link">
-                <div class="si"><i class="fa fa-credit-card"></i></div>
-                <span class="sl">Online Payments</span>
-            </a>
-            <a href="#" class="sb-link">
-                <div class="si"><i class="fa fa-file-invoice-dollar"></i></div>
-                <span class="sl">Invoices</span>
-            </a>
-            <a href="{% url 'add_complaint' %}" class="sb-link">
-                <div class="si"><i class="fa fa-triangle-exclamation"></i></div>
-                <span class="sl">Complaint Registration</span>
-            </a>
-            <a href="#" class="sb-link">
-                <div class="si"><i class="fa fa-envelope"></i></div>
-                <span class="sl">Mail Facility</span>
-            </a>
-            <div class="sb-section">Find</div>
-            <a href="#" class="sb-link">
-                <div class="si"><i class="fa fa-magnifying-glass"></i></div>
-                <span class="sl">Search Agents</span>
-            </a>
-            <a href="#" class="sb-link">
-                <div class="si"><i class="fa fa-map-pin"></i></div>
-                <span class="sl">Agent Location</span>
-            </a>
-            <a href="#" class="sb-link">
-                <div class="si"><i class="fa fa-truck"></i></div>
-                <span class="sl">Delivery Rounds</span>
-            </a>
-        `;
-    }
+    <!-- MAIN CONTENT -->
+    <main class="page-body" style="padding:28px; max-width:1400px; margin:0 auto;">
+        <div class="pg-header" style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:28px; gap:12px;">
+            <div>
+                <h1 class="pg-title" style="font-size:24px; font-weight:600; margin:0;">{% block breadcrumb %}My Account{% endblock %}</h1>
+            </div>
+        </div>
+        {% block content %}{% endblock %}
+    </main>
 
-    /* ── Brand subtitle & role ── */
-    const brandSub = document.querySelector('.sb-sub');
-    if (brandSub) brandSub.textContent = 'Customer Portal';
-    document.querySelectorAll('.sb-urole, .ur').forEach(el => el.textContent = 'Customer');
+    <footer class="pg-footer" style="padding:20px 24px; border-top:1px solid var(--border); background:var(--card); font-size:12px; color:var(--text-2); text-align:center;">
+        <span>© <span id="yr"></span> Publication Distribution Portal — Customer Portal</span>
+    </footer>
 
-    /* ── Inject cart icon into topbar actions (before notifications) ── */
-    const actions = document.querySelector('.tb-actions');
-    if (actions) {
-        const cartWrap = document.createElement('div');
-        cartWrap.className = 'dd-wrap';
-        cartWrap.innerHTML = `
-            <a href="{% url 'cart' %}" class="ib" id="cart-btn" style="text-decoration:none;">
-                <i class="fa fa-bag-shopping"></i>
-                <span id="cart-count" class="dot" style="background:var(--accent);color:#fff;font-size:9px;display:flex;align-items:center;justify-content:center;border-radius:50%;width:14px;height:14px;top:3px;right:3px;border:1.5px solid #fff;font-family:DM Mono,monospace;">0</span>
-            </a>
-        `;
-        actions.insertBefore(cartWrap, actions.firstChild);
-    }
+    <!-- Django data for cart -->
+    <div id="django-data"
+         data-authenticated="{{ user.is_authenticated|lower }}"
+         data-cart-url="{% url 'cart_data_api' %}"
+         data-remove-url="{% url 'remove_from_cart' %}"
+data-csrf="{{ csrf_token }}"
+data-shop-url="{% url 'customer_shop' %}"
+         data-delivery-url="{% url 'customer_delivery_rounds' %}"
+         data-bills-url="{% url 'customer_bills' %}"
+         data-cancel-url="{% url 'cancel_order' %}"
+         data-monthly-url="{% url 'monthly_payments' %}"
+         data-complaint-url="{% url 'add_complaint' %}"
+         style="display:none;"></div>
 
-    /* ── Cart data loader ── */
-    const dj = document.getElementById('django-data');
-    if (!dj || dj.dataset.authenticated !== 'true') return;
+    {% block extra_js %}{% endblock %}
 
-    function loadCart() {
-        fetch(dj.dataset.cartUrl)
-            .then(r => r.json())
-            .then(data => {
-                const cnt = document.getElementById('cart-count');
-                if (cnt) cnt.textContent = data.total_items || 0;
-            })
-            .catch(err => console.error('Cart error:', err));
-    }
-    window.refreshCart = loadCart;
-    loadCart();
-});
-</script>
-{% endblock %}
+    <script>
+        // Year
+        document.getElementById('yr').textContent = new Date().getFullYear();
+
+        // Dropdown toggle
+        function toggleDd(id) {
+            const el = document.getElementById(id);
+            const isOpen = el.classList.contains('open');
+            document.querySelectorAll('.dd').forEach(d => d.classList.remove('open'));
+            if (!isOpen) el.classList.add('open');
+        }
+        document.addEventListener('click', e => {
+            if (!e.target.closest('.dd-wrap')) document.querySelectorAll('.dd').forEach(d => d.classList.remove('open'));
+        });
+
+// Customer Navigation (from old sidebar)
+        document.addEventListener('DOMContentLoaded', function() {
+            const dj = document.getElementById('django-data');
+            const shopUrl = dj ? dj.dataset.shopUrl : '/customer/shop/';
+            const deliveryUrl = dj ? dj.dataset.deliveryUrl : '/customer/delivery-rounds/';
+            const billsUrl = dj ? dj.dataset.billsUrl : '/customer/bills/';
+            const cancelUrl = dj ? dj.dataset.cancelUrl : '/customer/cancel-order/';
+            const monthlyUrl = dj ? dj.dataset.monthlyUrl : '/customer/monthly-payments/';
+            const complaintUrl = dj ? dj.dataset.complaintUrl : '/customer/add-complaint/';
+            const navContainer = document.querySelector('#customer-nav div');
+            if (navContainer) {
+navContainer.innerHTML = `
+                    <a href="/customer/dashboard/" class="nav-link active" style="display:inline-flex; align-items:center; gap:8px; padding:8px 16px; color:var(--text-2); font-size:13px; font-weight:500; text-decoration:none; white-space:nowrap; transition:color,background .12s; border-radius:8px;">
+                        <i class="fa fa-gauge-high"></i>Dashboard
+                    </a>
+                    <a href="${shopUrl}" class="nav-link" style="display:inline-flex; align-items:center; gap:8px; padding:8px 16px; color:var(--text-2); font-size:13px; font-weight:500; text-decoration:none; white-space:nowrap; transition:color,background .12s; border-radius:8px;">
+                        <i class="fa fa-newspaper"></i>Shop
+                    </a>
+                    <a href="${deliveryUrl}" class="nav-link" style="display:inline-flex; align-items:center; gap:8px; padding:8px 16px; color:var(--text-2); font-size:13px; font-weight:500; text-decoration:none; white-space:nowrap; transition:color,background .12s; border-radius:8px;">
+                        <i class="fa fa-route"></i>Delivery
+                    </a>
+                    <a href="${billsUrl}" class="nav-link" style="display:inline-flex; align-items:center; gap:8px; padding:8px 16px; color:var(--text-2); font-size:13px; font-weight:500; text-decoration:none; white-space:nowrap; transition:color,background .12s; border-radius:8px;">
+                        <i class="fa fa-file-invoice"></i>Bills
+                    </a>
+                    <a href="${cancelUrl}" class="nav-link" style="display:inline-flex; align-items:center; gap:8px; padding:8px 16px; color:var(--text-2); font-size:13px; font-weight:500; text-decoration:none; white-space:nowrap; transition:color,background .12s; border-radius:8px;">
+                        <i class="fa fa-ban"></i>Cancel
+                    </a>
+                    <a href="${monthlyUrl}" class="nav-link" style="display:inline-flex; align-items:center; gap:8px; padding:8px 16px; color:var(--text-2); font-size:13px; font-weight:500; text-decoration:none; white-space:nowrap; transition:color,background .12s; border-radius:8px;">
+                        <i class="fa fa-credit-card"></i>Payments
+                    </a>
+                    <a href="${complaintUrl}" class="nav-link" style="display:inline-flex; align-items:center; gap:8px; padding:8px 16px; color:var(--text-2); font-size:13px; font-weight:500; text-decoration:none; white-space:nowrap; transition:color,background .12s; border-radius:8px;">
+                        <i class="fa fa-triangle-exclamation"></i>Complaints
+                    </a>
+                `;
+                // Active link
+                document.querySelectorAll('.nav-link').forEach(link => {
+                    if (link.href === window.location.href) link.classList.add('active');
+                });
+            }
+            // Cart injection & loader (after nav)
+
+            // Inject cart before notifications
+            const actions = document.querySelector('.tb-actions');
+            if (actions) {
+                const cartWrap = document.createElement('div');
+                cartWrap.className = 'dd-wrap';
+                cartWrap.style.position = 'relative';
+                cartWrap.innerHTML = `
+                    <a href="{% url 'cart' %}" class="ib" id="cart-btn" style="width:34px; height:34px; border:1px solid var(--border); border-radius:8px; background:none; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text-2); font-size:14px; position:relative; transition:background .12s; text-decoration:none;">
+                        <i class="fa fa-bag-shopping"></i>
+                        <span id="cart-count" class="dot" style="position:absolute; top:6px; right:6px; width:14px; height:14px; background:var(--accent); color:#fff; font-size:9px; display:flex; align-items:center; justify-content:center; border-radius:50%; border:1.5px solid #fff; font-family:DM Mono,monospace;">0</span>
+                    </a>
+                `;
+                actions.insertBefore(cartWrap, actions.querySelector('.dd-wrap'));
+            }
+
+            function loadCart() {
+                fetch(dj.dataset.cartUrl)
+                    .then(r => r.json())
+                    .then(data => {
+                        const cnt = document.getElementById('cart-count');
+                        if (cnt) cnt.textContent = data.total_items || 0;
+                    })
+                    .catch(err => console.error('Cart error:', err));
+            }
+            window.refreshCart = loadCart;
+            loadCart();
+
+            // Nav hover styles
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.addEventListener('mouseenter', () => {
+                    if (!link.classList.contains('active')) link.style.background = 'rgba(220,38,38,0.05)'; link.style.color = 'var(--accent)';
+                });
+                link.addEventListener('mouseleave', () => {
+                    if (!link.classList.contains('active')) { link.style.background = ''; link.style.color = 'var(--text-2)'; }
+                });
+                if (link.classList.contains('active')) {
+                    link.style.color = 'var(--accent)';
+                    link.style.background = 'rgba(220,38,38,0.08)';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+{% extends 'customerheader.html' %}
+{% load static %}
+
+{% block title %}Delivery Rounds — Customer Portal{% endblock %}
+{% block breadcrumb %}Delivery Rounds{% endblock %}
+
+{% block content %}
+<style>
+.round-section { margin-bottom: 32px; }
+.round-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+.round-title { font-size: 18px; font-weight: 600; color: var(--text); }
+.round-count { background: var(--bg); border: 1px solid var(--border); border-radius: 20px; padding: 4px 12px; font-size: 12px; color: var(--text-2); font-weight: 500; }
+.round-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+.round-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; box-shadow: var(--shadow); }
+.round-route { background: linear-gradient(135deg, var(--accent-light), #fef2f2); padding: 20px; border-bottom: 1px solid var(--border); }
+.route-path { font-size: 16px; font-weight: 600; color: var(--text); }
+.route-path small { font-size: 13px; color: var(--text-2); font-weight: 400; }
+.stock-list { padding: 20px; max-height: 300px; overflow-y: auto; }
+.stock-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f1e8e1; }
+.stock-name { font-weight: 500; color: var(--text); }
+.stock-qty { font-size: 14px; font-weight: 600; color: var(--accent); }
+.empty-state { text-align: center; padding: 60px 40px; color: var(--text-2); }
+.empty-icon { font-size: 48px; color: #d1d5db; margin-bottom: 16px; }
+</style>
+
+<div class="page-hero">
+    <h1>Delivery Schedule</h1>
+    <p>View your agents' delivery routes and available stock for your publications.</p>
+</div>
+
+{% if rounds %}
+    {% for round in rounds %}
+    <div class="round-section">
+        <div class="round-header">
+            <div class="round-title">{{ round.agent.name }} — {{ round.start_place }} → {{ round.end_place }}</div>
+            <span class="round-count">{{ round.stocks.count }} publications</span>
+        </div>
+        <div class="round-card">
+            <div class="round-route">
+                <div class="route-path">
+                    Route: <strong>{{ round.start_place }}</strong> to <strong>{{ round.end_place }}</strong>
+                    <small>{% if round.customer_orders %}{{ round.customer_orders }} of your orders{% else %}No active orders on this route{% endif %}</small>
+                </div>
+            </div>
+            <div class="stock-list">
+                {% for stock in round.stocks.all %}   {# <-- add .all() #}
+                    <div class="stock-item">
+                        <span class="stock-name">{{ stock.product.name }}</span>
+                        <span class="stock-qty">{{ stock.no_of_copies }} copies</span>
+                    </div>
+                {% empty %}
+    
+                <div class="empty-state">
+                    <div class="empty-icon"><i class="fa fa-road"></i></div>
+                    <p>No stock assigned to this route</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+<div class="empty-state">
+    <div class="empty-icon"><i class="fa fa-route"></i></div>
+    <h3>No delivery rounds found</h3>
+    <p>Your agents haven't set up delivery routes yet, or you don't have active orders.</p>
+    <a href="{% url 'customer_shop' %}" class="btn-primary" style="margin-top: 16px; display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; background: var(--accent); color: white; text-decoration: none; border-radius: 8px; font-weight: 500;">
+        <i class="fa fa-store"></i> Browse Publications
+    </a>
+</div>
+{% endif %}
+
+{% endblock %}
+
