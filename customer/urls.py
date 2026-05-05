@@ -21,5 +21,8 @@ urlpatterns = [
     path('delivery-rounds/', views.customer_delivery_rounds, name='customer_delivery_rounds'),
     path('bills/', views.customer_bills, name='customer_bills'),
     path('cancel-order/', views.cancel_order, name='cancel_order'),
+
+    path('invoices/', views.customer_invoices, name='customer_invoices'),
+    path('invoices/<int:order_id>/', views.customer_invoice_detail, name='customer_invoice_detail'),
 ]
 

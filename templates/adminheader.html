@@ -227,7 +227,7 @@
         </a>
         <a href="{% url 'frequency_list' %}" class="sb-link">
             <div class="si"><i class="fa fa-calendar-alt"></i></div>
-            <span class="sl">Product Frequencies</span>
+            <span class="sl">Manage Frequency</span>
         </a>
 
         <button class="sb-link" onclick="toggleSub('sub-agent',this)">
@@ -256,12 +256,35 @@
             <div class="si"><i class="fa fa-users"></i></div>
             <span class="sl">View Customers</span>
         </a>
+
         <a href="{% url 'customer_order_list' %}" class="sb-link">
             <div class="si"><i class="fa fa-shopping-bag"></i></div>
             <span class="sl">View Customer Orders</span>
         </a>
 
+        <a href="{% url 'admin_invoices' %}" class="sb-link">
+            <div class="si"><i class="fa fa-file-invoice-dollar"></i></div>
+            <span class="sl">View Invoices</span>
+        </a>
+
+
+        <div class="sb-section">Delivery Management</div>
+        <a href="{% url 'admin_delivery_rounds' %}" class="sb-link">
+            <div class="si"><i class="fa fa-route"></i></div>
+            <span class="sl">View delivery rounds</span>
+        </a>
+        <a href="{% url 'admin_delivery_stock' %}" class="sb-link">
+            <div class="si"><i class="fa fa-boxes-stacked"></i></div>
+            <span class="sl">View delivery stock</span>
+        </a>
+        <a href="{% url 'admin_agent_delivery_rounds' %}" class="sb-link">
+            <div class="si"><i class="fa fa-users"></i></div>
+            <span class="sl">View agent stock</span>
+        </a>
+
         <div class="sb-section">Reports</div>
+
+
         <a href="{% url 'admin_payment_report' %}" class="sb-link">
             <div class="si"><i class="fa fa-file-invoice"></i></div>
             <span class="sl">Payment Report</span>

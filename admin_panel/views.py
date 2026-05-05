@@ -4,8 +4,9 @@ from datetime import date
 from .models import Location, Frequency, Product, Supplier, Notification
 from .forms import LocationForm, FrequencyForm, ProductForm, SupplierForm, AgentSuppForm, NotificationForm
 from login.models import Agent, Customer
-from agent.models import AgentSupp
+from agent.models import AgentSupp, DeliveryRound, DeliveryStock
 from customer.models import CustomerOrder, OrderCart, MonthlyPayment, Complaint
+from django.contrib.auth.decorators import login_required
 
 def dashboard(request):
     # return HttpResponse("Welcome to Admin Panel")
@@ -268,3 +269,43 @@ def notification_delete(request, id):
     obj = get_object_or_404(Notification, id=id)
     obj.delete()
     return redirect('notification_list')
+
+# @login_required
+def admin_delivery_rounds(request):
+    rounds = DeliveryRound.objects.select_related('agent').prefetch_related('stocks__product').order_by('agent__name')
+    return render(request, 'admin_delivery_rounds.html', {'rounds': rounds})
+
+
+# @login_required
+def admin_delivery_stock(request):
+    stocks = DeliveryStock.objects.select_related(
+        'delivery_round__agent', 'product'
+    ).order_by('delivery_round__agent__name', 'delivery_round__id')
+    return render(request, 'admin_delivery_stock.html', {'stocks': stocks})
+
+
+# @login_required
+def admin_agent_delivery_rounds(request):
+    # Group rounds by agent
+    from login.models import Agent
+    agents = Agent.objects.prefetch_related(
+        'deliveryround_set__stocks__product'
+    ).order_by('name')
+    return render(request, 'admin_agent_delivery_rounds.html', {'agents': agents})
+
+@login_required
+def admin_invoices(request):
+    orders = CustomerOrder.objects.filter(
+        status__in=['order_confirmed', 'payment_received', 'delivered']
+    ).select_related('customer').prefetch_related('items__product').order_by('-order_date')
+    return render(request, 'admin_invoices.html', {'orders': orders})
+
+
+@login_required
+def admin_invoice_detail(request, order_id):
+    order = get_object_or_404(
+        CustomerOrder,
+        id=order_id,
+        status__in=['order_confirmed', 'payment_received', 'delivered']
+    )
+    return render(request, 'invoice_detail.html', {'order': order, 'base': 'adminheader.html'})

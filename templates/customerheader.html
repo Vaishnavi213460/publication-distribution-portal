@@ -124,7 +124,7 @@
 data-csrf="{{ csrf_token }}"
 data-shop-url="{% url 'customer_shop' %}"
          data-delivery-url="{% url 'customer_delivery_rounds' %}"
-         data-bills-url="{% url 'customer_bills' %}"
+         data-invoices-url="{% url 'customer_invoices' %}"
          data-cancel-url="{% url 'cancel_order' %}"
          data-monthly-url="{% url 'monthly_payments' %}"
          data-complaint-url="{% url 'add_complaint' %}"
@@ -152,7 +152,7 @@ data-shop-url="{% url 'customer_shop' %}"
             const dj = document.getElementById('django-data');
             const shopUrl = dj ? dj.dataset.shopUrl : '/customer/shop/';
             const deliveryUrl = dj ? dj.dataset.deliveryUrl : '/customer/delivery-rounds/';
-            const billsUrl = dj ? dj.dataset.billsUrl : '/customer/bills/';
+            const invoicesUrl = dj ? dj.dataset.invoicesUrl : '/customer/invoices/';
             const cancelUrl = dj ? dj.dataset.cancelUrl : '/customer/cancel-order/';
             const monthlyUrl = dj ? dj.dataset.monthlyUrl : '/customer/monthly-payments/';
             const complaintUrl = dj ? dj.dataset.complaintUrl : '/customer/add-complaint/';
@@ -168,8 +168,8 @@ navContainer.innerHTML = `
                     <a href="${deliveryUrl}" class="nav-link" style="display:inline-flex; align-items:center; gap:8px; padding:8px 16px; color:var(--text-2); font-size:13px; font-weight:500; text-decoration:none; white-space:nowrap; transition:color,background .12s; border-radius:8px;">
                         <i class="fa fa-route"></i>Delivery
                     </a>
-                    <a href="${billsUrl}" class="nav-link" style="display:inline-flex; align-items:center; gap:8px; padding:8px 16px; color:var(--text-2); font-size:13px; font-weight:500; text-decoration:none; white-space:nowrap; transition:color,background .12s; border-radius:8px;">
-                        <i class="fa fa-file-invoice"></i>Bills
+                    <a href="${invoicesUrl}" class="nav-link" style="display:inline-flex; align-items:center; gap:8px; padding:8px 16px; color:var(--text-2); font-size:13px; font-weight:500; text-decoration:none; white-space:nowrap; transition:color,background .12s; border-radius:8px;">
+                        <i class="fa fa-file-invoice"></i>Invoices
                     </a>
                     <a href="${cancelUrl}" class="nav-link" style="display:inline-flex; align-items:center; gap:8px; padding:8px 16px; color:var(--text-2); font-size:13px; font-weight:500; text-decoration:none; white-space:nowrap; transition:color,background .12s; border-radius:8px;">
                         <i class="fa fa-ban"></i>Cancel

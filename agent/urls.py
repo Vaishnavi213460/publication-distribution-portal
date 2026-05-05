@@ -25,4 +25,7 @@ urlpatterns = [
     path('delivery-rounds/', views.agent_delivery_rounds, name='agent_delivery_rounds'),
     path('delivery-rounds/<int:id>/delete/', views.delivery_round_delete, name='delivery_round_delete'),
     path('delivery-stocks/<int:id>/delete/', views.delivery_stock_delete, name='delivery_stock_delete'),
+
+    path('invoices/', views.agent_invoices, name='agent_invoices'),
+    path('invoices/<int:order_id>/', views.agent_invoice_detail, name='agent_invoice_detail'),
 ]

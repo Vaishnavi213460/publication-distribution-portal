@@ -1,0 +1,75 @@
+{% extends base %}
+{% block title %}Invoice #{{ order.id }}{% endblock %}
+{% block breadcrumb %}Invoice #{{ order.id }}{% endblock %}
+
+{% block content %}
+<style>
+@media print {
+    .no-print { display: none !important; }
+    .sidebar, .topbar, .customer-nav, nav, footer { display: none !important; }
+    .main { margin-left: 0 !important; }
+}
+</style>
+
+<div class="no-print" style="margin-bottom: 1.5rem; display: flex; gap: 12px; align-items: center;">
+    <a href="javascript:history.back()" style="font-size: 13px; color: var(--text-2); text-decoration: none;">← Back</a>
+    <button onclick="window.print()"
+        style="margin-left: auto; font-size: 13px; padding: 6px 16px; border: 1px solid var(--border); border-radius: 6px; background: var(--card); cursor: pointer; color: var(--text);">
+        <i class="fa fa-print"></i> Print
+    </button>
+</div>
+
+<div style="max-width: 640px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 2rem;">
+
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem;">
+        <div>
+            <div style="font-size: 20px; font-weight: 600;">Invoice</div>
+            <div style="font-size: 13px; color: var(--text-2); margin-top: 4px;">#{{ order.id }}</div>
+        </div>
+        <div style="text-align: right; font-size: 13px; color: var(--text-2);">
+            <div>Date: {{ order.order_date }}</div>
+            <div>Status: <strong>{{ order.get_status_display }}</strong></div>
+            <div>Payment: {{ order.get_payment_type_display }}</div>
+        </div>
+    </div>
+
+    <div style="margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);">
+        <div style="font-size: 11px; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px;">Billed to</div>
+        <div style="font-size: 14px; font-weight: 500;">{{ order.customer.get_full_name|default:order.customer.username }}</div>
+        {% with order.customer.customer as profile %}
+        {% if profile %}
+        <div style="font-size: 13px; color: var(--text-2);">{{ profile.phone }}</div>
+        <div style="font-size: 13px; color: var(--text-2);">{{ profile.address }}</div>
+        {% endif %}
+        {% endwith %}
+    </div>
+
+    <div style="margin-bottom: 1.5rem;">
+        <div style="font-size: 11px; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 10px;">Items</div>
+        {% for item in order.items.all %}
+        <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 14px;">
+            <div>
+                <span style="font-weight: 500;">{{ item.product.name }}</span>
+                <span style="color: var(--text-2); font-size: 12px; margin-left: 8px;">
+                    x{{ item.qty }}
+                    {% if item.frequency %} · {{ item.frequency.frequency }}{% endif %}
+                    · {{ item.frequency_months }} month{{ item.frequency_months|pluralize }}
+                </span>
+                {% if item.delivery_start_date %}
+                <div style="font-size: 12px; color: var(--text-2); margin-top: 2px;">
+                    {{ item.delivery_start_date }} → {{ item.delivery_end_date }}
+                </div>
+                {% endif %}
+            </div>
+            <span style="font-weight: 500;">₹{{ item.total_amount|floatformat:2 }}</span>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div style="display: flex; justify-content: flex-end; gap: 2rem; font-size: 15px; padding-top: 0.5rem;">
+        <span style="color: var(--text-2);">Total</span>
+        <span style="font-weight: 600;">₹{{ order.get_total|floatformat:2 }}</span>
+    </div>
+
+</div>
+{% endblock %}

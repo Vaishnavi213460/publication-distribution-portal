@@ -534,7 +534,10 @@ def cancel_order(request):
                 order.save()
                 order.items.update(status='cancelled')
                 # Mark pending monthly payments as cancelled if any
-                order.items.filter(monthly_payments__status='pending').monthly_payments.update(status='cancelled')
+                MonthlyPayment.objects.filter(
+                    order_item__in=order.items.all(),
+                    status='pending'
+                ).update(status='cancelled')
                 messages.success(request, f'Order #{order.id} has been cancelled. Reason: {reason[:50]}...')
                 return redirect('cancel_order')
         messages.error(request, 'Invalid cancellation request.')
@@ -545,3 +548,21 @@ def cancel_order(request):
         'form': form
     })
 
+@login_required
+def customer_invoices(request):
+    orders = CustomerOrder.objects.filter(
+        customer=request.user,
+        status__in=['order_confirmed', 'payment_received', 'delivered']
+    ).prefetch_related('items__product', 'items__frequency').order_by('-order_date')
+    return render(request, 'customer_invoices.html', {'orders': orders})
+
+
+@login_required
+def customer_invoice_detail(request, order_id):
+    order = get_object_or_404(
+        CustomerOrder,
+        id=order_id,
+        customer=request.user,
+        status__in=['order_confirmed', 'payment_received', 'delivered']
+    )
+    return render(request, 'invoice_detail.html', {'order': order, 'base': 'customerheader.html'})

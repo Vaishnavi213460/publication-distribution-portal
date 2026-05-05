@@ -1,0 +1,42 @@
+{% extends 'adminheader.html' %}
+{% block title %}Agent Stock{% endblock %}
+{% block breadcrumb %}Agent Stock{% endblock %}
+
+{% block content %}
+<h1 style="font-size: 18px; font-weight: 500; padding: 1.25rem 0 1rem; border-bottom: 0.5px solid var(--border); margin-bottom: 1.25rem;">
+    Agent delivery rounds
+</h1>
+
+{% if agents %}
+    {% for agent in agents %}
+    <div style="margin-bottom: 1.5rem;">
+        <div style="font-size: 15px; font-weight: 500; margin-bottom: 0.75rem;">
+            {{ agent.name }}
+            <span style="font-size: 12px; font-weight: 400; color: var(--text-2); margin-left: 8px;">
+                {{ agent.deliveryround_set.count }} round{{ agent.deliveryround_set.count|pluralize }}
+            </span>
+        </div>
+        {% for round in agent.deliveryround_set.all %}
+        <div style="margin-left: 1rem; margin-bottom: 0.75rem;">
+            <div style="font-size: 13px; color: var(--text-2); margin-bottom: 4px;">
+                {{ round.start_place }} → {{ round.end_place }}
+            </div>
+            {% for stock in round.stocks.all %}
+            <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 0.5px solid var(--border); font-size: 14px;">
+                <span>{{ stock.product.name }}</span>
+                <span style="color: var(--text-2); font-size: 13px;">{{ stock.no_of_copies }} copies</span>
+            </div>
+            {% empty %}
+            <p style="color: var(--text-2); font-size: 13px; padding: 4px 0;">No stock on this route</p>
+            {% endfor %}
+        </div>
+        {% empty %}
+        <p style="color: var(--text-2); font-size: 13px; margin-left: 1rem;">No rounds assigned</p>
+        {% endfor %}
+    </div>
+    {% if not forloop.last %}<hr style="border: none; border-top: 0.5px solid var(--border); margin: 1.25rem 0;">{% endif %}
+    {% endfor %}
+{% else %}
+    <p style="color: var(--text-2); font-size: 14px;">No agents found.</p>
+{% endif %}
+{% endblock %}

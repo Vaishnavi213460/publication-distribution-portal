@@ -1,0 +1,36 @@
+{% extends 'adminheader.html' %}
+{% block title %}Delivery Rounds{% endblock %}
+{% block breadcrumb %}Delivery Rounds{% endblock %}
+
+{% block content %}
+<h1 style="font-size: 18px; font-weight: 500; padding: 1.25rem 0 1rem; border-bottom: 0.5px solid var(--border); margin-bottom: 1.25rem;">
+    All delivery rounds
+</h1>
+
+{% if rounds %}
+    {% for round in rounds %}
+    <div style="margin-bottom: 1.5rem;">
+        <div style="font-size: 12px; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px;">
+            {{ round.agent.name }}
+        </div>
+        <div style="font-size: 15px; font-weight: 500; margin-bottom: 0.75rem;">
+            {{ round.start_place }} → {{ round.end_place }}
+            <span style="font-size: 12px; font-weight: 400; color: var(--text-2); margin-left: 8px;">
+                {{ round.stocks.count }} publication{{ round.stocks.count|pluralize }}
+            </span>
+        </div>
+        {% for stock in round.stocks.all %}
+        <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 0.5px solid var(--border); font-size: 14px;">
+            <span>{{ stock.product.name }}</span>
+            <span style="color: var(--text-2); font-size: 13px;">{{ stock.no_of_copies }} copies</span>
+        </div>
+        {% empty %}
+        <p style="color: var(--text-2); font-size: 14px; padding: 0.5rem 0;">No stock on this route</p>
+        {% endfor %}
+    </div>
+    {% if not forloop.last %}<hr style="border: none; border-top: 0.5px solid var(--border); margin: 1.25rem 0;">{% endif %}
+    {% endfor %}
+{% else %}
+    <p style="color: var(--text-2); font-size: 14px;">No delivery rounds found.</p>
+{% endif %}
+{% endblock %}

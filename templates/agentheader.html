@@ -45,6 +45,12 @@ document.addEventListener('DOMContentLoaded', function () {
             <span class="sl">Delivery List</span>
         </a>
 
+        <div class="sb-section">Invoices</div>
+        <a href="{% url 'agent_invoices' %}" class="sb-link">
+            <div class="si"><i class="fa fa-file-invoice"></i></div>
+            <span class="sl">View invoices</span>
+        </a>
+
         <button class="sb-link" onclick="toggleSub('sub-rounds', this)">
             <div class="si"><i class="fa fa-calendar-days"></i></div>
             <span class="sl">Delivery Rounds</span>
@@ -77,6 +83,7 @@ document.addEventListener('DOMContentLoaded', function () {
             <a href="#" class="sb-link">Customer Holidays</a>
             <a href="{% url 'agent_complaints' %}" class="sb-link">Complaints</a>
         </div>
+        
 
         <div class="sb-section">Publications</div>
         <a href="#" class="sb-link">

@@ -1,0 +1,29 @@
+{% extends 'adminheader.html' %}
+{% block title %}Invoices{% endblock %}
+{% block breadcrumb %}Invoices{% endblock %}
+
+{% block content %}
+<h1 style="font-size: 18px; font-weight: 500; padding: 1.25rem 0 1rem; border-bottom: 1px solid var(--border); margin-bottom: 1.25rem;">
+    All invoices
+</h1>
+{% if orders %}
+    {% for order in orders %}
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 14px;">
+        <div>
+            <span style="font-weight: 500;">Invoice #{{ order.id }}</span>
+            <span style="color: var(--text-2); margin-left: 10px;">{{ order.customer.get_full_name|default:order.customer.username }}</span>
+            <span style="color: var(--text-2); margin-left: 10px;">{{ order.order_date }}</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="font-weight: 500;">₹{{ order.get_total|floatformat:2 }}</span>
+            <a href="{% url 'agent_invoice_detail' order.id %}"
+               style="font-size: 13px; color: var(--accent); text-decoration: none; border: 1px solid var(--border); padding: 4px 12px; border-radius: 6px;">
+                View bill
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+    <p style="color: var(--text-2); font-size: 14px;">No invoices found.</p>
+{% endif %}
+{% endblock %}

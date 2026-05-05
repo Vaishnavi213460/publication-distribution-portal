@@ -1,22 +1,15 @@
-# Customer Module Enhancements TODO
-Complete these steps to add search agents (link existing), view delivery rounds, view bills (link existing), and new product cancellation feature.
+# Publication Portal TODO - Admin Header Menus
 
-## Pending Steps
-- [x] **Step 1**: Update `templates/customerheader.html` - Add navigation links for new features (Delivery Rounds, Bills, Cancel Order). ✅
-- [x] **Step 2**: Update `customer/urls.py` - Add new URL patterns for delivery_rounds, bills, cancel_order. ✅
-- [x] **Step 1**: Update `templates/customerheader.html` - Add navigation links for new features (Delivery Rounds, Bills, Cancel Order). ✅
-- [x] **Step 2**: Update `customer/urls.py` - Add new URL patterns for delivery_rounds, bills, cancel_order. ✅
-- [x] **Step 3**: Update `customer/forms.py` - Add `CancelOrderForm`. ✅
-- [x] **Step 4**: Update `customer/views.py` - Add `customer_delivery_rounds`, `customer_bills`, `cancel_order` views. ✅
-- [x] **Step 5**: Create `templates/customer_delivery_rounds.html` - Delivery rounds listing. ✅
-- [x] **Step 6**: Create `templates/customer_bills.html` - Bills/payments listing. ✅
-- [x] **Step 7**: Create `templates/customer_cancel_order.html` - Order cancellation form. ✅
-- [ ] **Step 8**: Test all new features → mark complete → delete TODO.md.
+## Task: Add admin menus for View delivery rounds, View delivery stock, View agent stock
 
-**All features implemented! Ready for testing.**
 
-## Completed Steps
-<!-- Updated after each step -->
+### Step 1: [DONE] Create this TODO.md and get plan approval
+### Step 2: [DONE] Edit templates/adminheader.html to add new Delivery Management section with 3 menu links
+### Step 3: [DONE] Updated links to existing customer_delivery_rounds (rounds/stock) & agent_delivery_rounds (agent stock) - Fixes NoReverseMatch
 
-**Next Action**: Step 1 - Update customer header navigation.
+### Step 4: [FUTURE] Add admin_panel/urls.py patterns for 'admin_delivery_rounds', 'admin_delivery_stock', 'admin_agent_stock'
+### Step 5: [FUTURE] Add admin_panel/views.py list views using agent.models.DeliveryRound, DeliveryStock
+### Step 6: [FUTURE] Create templates/admin_delivery_rounds.html, admin_delivery_stock.html, admin_agent_stock.html
+### Step 7: [DONE] Mark complete with attempt_completion
 
+**Current Progress: Starting implementation**

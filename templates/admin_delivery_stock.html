@@ -1,0 +1,25 @@
+{% extends 'adminheader.html' %}
+{% block title %}Delivery Stock{% endblock %}
+{% block breadcrumb %}Delivery Stock{% endblock %}
+
+{% block content %}
+<h1 style="font-size: 18px; font-weight: 500; padding: 1.25rem 0 1rem; border-bottom: 0.5px solid var(--border); margin-bottom: 1.25rem;">
+    All delivery stock
+</h1>
+
+{% if stocks %}
+    {% for stock in stocks %}
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 0.5px solid var(--border); font-size: 14px;">
+        <div>
+            <span style="font-weight: 500;">{{ stock.product.name }}</span>
+            <span style="color: var(--text-2); font-size: 13px; margin-left: 10px;">
+                {{ stock.delivery_round.agent.name }} · {{ stock.delivery_round.start_place }} → {{ stock.delivery_round.end_place }}
+            </span>
+        </div>
+        <span style="color: var(--text-2); font-size: 13px;">{{ stock.no_of_copies }} copies</span>
+    </div>
+    {% endfor %}
+{% else %}
+    <p style="color: var(--text-2); font-size: 14px;">No delivery stock found.</p>
+{% endif %}
+{% endblock %}

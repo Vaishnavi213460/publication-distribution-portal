@@ -445,3 +445,20 @@ def delivery_stock_delete(request, id):
     obj = get_object_or_404(DeliveryStock, id=id, delivery_round__agent=agent)
     obj.delete()
     return redirect('agent_delivery_rounds')
+
+@login_required
+def agent_invoices(request):
+    orders = CustomerOrder.objects.filter(
+        status__in=['order_confirmed', 'payment_received', 'delivered']
+    ).select_related('customer').prefetch_related('items__product').order_by('-order_date')
+    return render(request, 'agent_invoices.html', {'orders': orders})
+
+
+@login_required
+def agent_invoice_detail(request, order_id):
+    order = get_object_or_404(
+        CustomerOrder,
+        id=order_id,
+        status__in=['order_confirmed', 'payment_received', 'delivered']
+    )
+    return render(request, 'invoice_detail.html', {'order': order, 'base': 'adminheader.html'})

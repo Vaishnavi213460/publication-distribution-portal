@@ -46,5 +46,12 @@ urlpatterns = [
     path('notification/edit/<int:id>/', views.notification_list_create_update, name='notification_edit'),
     path('notification/delete/<int:id>/', views.notification_delete, name='notification_delete'),
 
+    # Delivery Management
+    path('delivery-rounds/', views.admin_delivery_rounds, name='admin_delivery_rounds'),
+    path('delivery-stock/', views.admin_delivery_stock, name='admin_delivery_stock'),
+    path('agent-delivery-rounds/', views.admin_agent_delivery_rounds, name='admin_agent_delivery_rounds'),
+
+    path('invoices/', views.admin_invoices, name='admin_invoices'),
+    path('invoices/<int:order_id>/', views.admin_invoice_detail, name='admin_invoice_detail'),
 ]
 
